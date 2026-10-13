@@ -4,9 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
-/* ===== HIER DEINEN YOUTUBE-SCHLUESSEL ZWISCHEN DIE ANFUEHRUNGSZEICHEN SETZEN ===== */
-const YT_KEY_DEFAULT = "AIzaSyDho55ZuwYDsi6Orh_OJn9CObqi00XcgEI";
+/* YouTube-Schluessel: am besten in der Datei config.js eintragen (bleibt bei Updates erhalten).
+   Alternativ hier zwischen die Anfuehrungszeichen. */
+var YT_KEY_DEFAULT = "";
 </script>
+<script src="config.js"></script>
 <title>Echolot</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -34,19 +36,23 @@ h1 span{color:var(--accent)}
 .lede{color:var(--muted);margin:0;max-width:62ch}
 h2{font-family:var(--display);font-stretch:85%;font-weight:700;font-size:1.15rem;margin:0;text-wrap:balance}
 h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0;font-weight:600}
-.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
-.tabs button{appearance:none;border:0;background:none;color:var(--muted);font:inherit;font-weight:600;padding:8px 12px;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:none}
+.tabs button{appearance:none;border:0;background:none;color:var(--muted);font:inherit;font-weight:600;padding:8px 12px;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--accent)}
 .panel{display:flex;flex-direction:column;gap:12px}
-.row{display:flex;gap:8px;flex-wrap:wrap}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .row>input{flex:1 1 260px;min-width:0}
 input,select,textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 11px;width:100%}
 textarea{min-height:110px;resize:vertical;font-family:var(--mono);font-size:.85rem}
 .row>input,.row>select{width:auto}
 label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted);font-weight:600}
+label.check{flex-direction:row;align-items:center;gap:8px;font-weight:500}
+label.check input{width:auto}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
 .btn{appearance:none;font:inherit;font-weight:700;border-radius:6px;padding:9px 16px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-fg)}
 .btn.ghost{background:transparent;color:var(--accent)}
+.btn.small{padding:5px 10px;font-size:.85rem}
+.btn.danger{border-color:var(--crit);color:var(--crit);background:transparent}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hint{font-size:.85rem;color:var(--muted);margin:0}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
@@ -57,10 +63,12 @@ label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--mu
 #status.err{border-color:var(--crit)}
 .report{display:flex;flex-direction:column;gap:18px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card.summary{border-width:2px}
+.card.summary.l2{border-color:var(--crit)}.card.summary.l1{border-color:var(--warn)}.card.summary.l0{border-color:var(--ok)}
 .demo-flag{font-family:var(--mono);font-size:.75rem;color:var(--warn);text-transform:uppercase;letter-spacing:.08em}
 .acct{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
 .acct .h{font-family:var(--mono);color:var(--muted);font-size:.85rem;word-break:break-all}
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px 16px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px 16px;margin:0}
 .facts div{display:flex;flex-direction:column}
 .facts dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .facts dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1rem}
@@ -87,11 +95,19 @@ label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--mu
 .list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .list li{border-left:2px solid var(--line);padding:2px 0 2px 10px;min-width:0}
 .list li.origin{border-color:var(--accent)}
+.list li.scam{border-color:var(--crit)}
+.list .sub{margin:6px 0 0 4px;gap:6px}
 .meta{font-family:var(--mono);font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;word-break:break-all}
 .quote{margin:2px 0 0;font-size:.92rem;overflow-wrap:anywhere}
 a{color:var(--accent)}
 .links{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.9rem}
 .imgprev{max-width:100%;max-height:260px;border-radius:6px;border:1px solid var(--line);align-self:flex-start}
+.top3{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.hist li{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:10px 0;border-top:1px solid var(--line);align-items:center}
+.hist li:first-child{border-top:0}
+.hist .nm{font-weight:700;overflow-wrap:anywhere}
+.copybox{font-family:var(--mono);font-size:.8rem;min-height:160px}
 footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px}
 footer p{margin:0;max-width:70ch}
 @media (prefers-reduced-motion:no-preference){.report>.card{animation:in .25s ease-out both}}
@@ -99,18 +115,18 @@ footer p{margin:0;max-width:70ch}
 </style>
 </head>
 <body>
-
 <div class="wrap">
   <header>
     <h1>Echo<span>lot</span></h1>
-    <p class="lede">Lotet Social-Media-Konten und Beiträge aus: Verhaltensmuster, koordinierte Verbreitung und Herkunft. Ergebnis ist ein begründeter Verdacht, kein Urteil.</p>
-    <div class="chips"><span class="chip live">Bluesky live</span><span class="chip live">Mastodon live</span><span class="chip live">YouTube live (API-Schlüssel)</span><span class="chip">X · TikTok · Instagram · Facebook · Telegram: manuell</span></div>
+    <p class="lede">Lotet Social-Media-Konten und Beiträge aus: Verhaltensmuster, koordinierte Verbreitung, Betrugsnetze und Herkunft. Ergebnis ist ein begründeter Verdacht, kein Urteil.</p>
+    <div class="chips"><span class="chip live">Bluesky live</span><span class="chip live">Mastodon live</span><span class="chip live" id="yt-chip">YouTube live (API-Schlüssel)</span><span class="chip">X · TikTok · Instagram · Facebook · Telegram: manuell</span></div>
   </header>
 
   <nav class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-tab="link" id="t-link">Link prüfen</button>
     <button role="tab" aria-selected="false" data-tab="manual" id="t-manual">Manuell</button>
     <button role="tab" aria-selected="false" data-tab="image" id="t-image">Bild</button>
+    <button role="tab" aria-selected="false" data-tab="history" id="t-history">Verlauf</button>
     <button role="tab" aria-selected="false" data-tab="settings" id="t-settings">Einstellungen</button>
   </nav>
 
@@ -118,9 +134,15 @@ footer p{margin:0;max-width:70ch}
     <form class="row" id="f-link">
       <input id="in-link" placeholder="Link zu Beitrag, Konto oder Video – oder @name.bsky.social / @name@instanz" autocomplete="off">
       <button class="btn" type="submit">Ausloten</button>
-      <button class="btn ghost" type="button" id="demo">Beispiel ansehen</button>
     </form>
-    <p class="hint">Bluesky-Beitrag: Verbreitungsweg zurück bis zum Ursprung plus Suche nach fast gleichen Texten anderer Konten. YouTube-Video: Kanal plus Kommentar-Analyse. Andere Plattformen öffnen den manuellen Modus.</p>
+    <div class="row">
+      <label class="check"><input type="checkbox" id="opt-deep" checked> Gründlich (Follower, Verbreiter und Antworten mitprüfen)</label>
+    </div>
+    <div class="row">
+      <span class="hint">Beispiele:</span>
+      <button class="btn ghost small" type="button" id="demo">Bot-Konto</button>
+      <button class="btn ghost small" type="button" id="demo-yt">YouTube-Betrugsnetz</button>
+    </div>
   </section>
 
   <section class="panel" id="p-manual" hidden>
@@ -136,8 +158,8 @@ footer p{margin:0;max-width:70ch}
         <label>Profilbild<select id="m-avatar"><option value="1">vorhanden</option><option value="0">keins / Standardbild</option></select></label>
         <label>Profiltext<select id="m-bio"><option value="1">vorhanden</option><option value="0">leer</option></select></label>
       </div>
-      <label>Beiträge (durch Leerzeile getrennt)<textarea id="m-texts" placeholder="Beitrag 1 …&#10;&#10;Beitrag 2 …"></textarea></label>
-      <label>Zeitstempel (einer pro Zeile, z. B. 2026-10-12 03:14 oder nur 03:14)<textarea id="m-times" placeholder="2026-10-12 03:14&#10;2026-10-12 03:34"></textarea></label>
+      <label>Beiträge oder Kommentare (durch Leerzeile getrennt)<textarea id="m-texts" placeholder="Beitrag 1 …&#10;&#10;Beitrag 2 …"></textarea></label>
+      <label>Zeitstempel (einer pro Zeile, z. B. 2026-10-12 03:14, 12.10.2026 03:14 oder nur 03:14)<textarea id="m-times" placeholder="2026-10-12 03:14&#10;2026-10-12 03:34"></textarea></label>
       <label>Link zum Beitrag (optional, für Herkunftssuche)<input id="m-url" placeholder="https://…"></label>
       <div class="row"><button class="btn" type="submit">Auswerten</button></div>
     </form>
@@ -148,9 +170,15 @@ footer p{margin:0;max-width:70ch}
     <label>Bilddatei<input type="file" id="in-img" accept="image/*"></label>
   </section>
 
+  <section class="panel" id="p-history" hidden>
+    <p class="hint">Alle Prüfungen in diesem Browser. Prüf ein Konto nach ein paar Tagen erneut: Dann siehst du, ob es ruhiger geworden, gesperrt oder gelöscht ist.</p>
+    <ul class="hist" id="hist-list"></ul>
+    <div class="row" id="hist-actions"></div>
+  </section>
+
   <section class="panel" id="p-settings" hidden>
-    <label>YouTube-API-Schlüssel<input id="yt-key" placeholder="AIza…" autocomplete="off"></label>
-    <p class="hint">Kostenlos in der Google Cloud Console: Projekt anlegen, „YouTube Data API v3“ aktivieren, unter Anmeldedaten einen API-Schlüssel erstellen. Der Schlüssel bleibt nur in diesem Browser gespeichert.</p>
+    <label>YouTube-API-Schlüssel (nur für diesen Browser)<input id="yt-key" placeholder="AIza…" autocomplete="off"></label>
+    <p class="hint">Damit der Schlüssel auf allen Geräten gilt, trag ihn in die Datei config.js in deinem GitHub-Repository ein. Kostenlos erhältlich in der Google Cloud Console unter „YouTube Data API v3“.</p>
     <div class="row"><button class="btn" type="button" id="save-key">Speichern</button></div>
   </section>
 
@@ -159,7 +187,7 @@ footer p{margin:0;max-width:70ch}
 
   <footer>
     <p><b>Grenzen.</b> Kein Signal beweist einen Bot. Nachtschichtler, Redaktionen und Fans posten auch viel und regelmäßig. Echolot zeigt Auffälligkeiten mit Begründung, die Bewertung bleibt bei dir.</p>
-    <p>Reine KI-Texterkennung ist unzuverlässig und wird deshalb nur bei eindeutigen Spuren gewertet, etwa versehentlich mitkopierten Chatbot-Antworten. Echolot verfolgt Inhalte und Netzwerke, keine Personen hinter Konten.</p>
+    <p>Echolot misst Automatisierung und koordinierte Verbreitung, nicht Wahrheit. Reine KI-Texterkennung ist unzuverlässig und wird nur bei eindeutigen Spuren gewertet. Echolot verfolgt Inhalte und Netzwerke, keine Personen hinter Konten.</p>
   </footer>
 </div>
 
@@ -171,9 +199,23 @@ const fmtN=(n,d=0)=>n==null||isNaN(n)?'–':Number(n).toLocaleString('de-DE',{ma
 const fmtDate=d=>d?d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}):'–';
 const fmtDT=d=>d?d.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'–';
 function fmtAge(days){if(days<1)return 'weniger als 1 Tag';if(days<60)return Math.round(days)+' Tage';if(days<730)return Math.round(days/30.4)+' Monate';return fmtN(days/365.25,1)+' Jahre'}
+const pct=x=>fmtN(x*100)+' %';
 const domainOf=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return null}};
 const clean=t=>(t||'').toLowerCase().replace(/https?:\/\/\S+/g,' ').replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();
+const wordSet=t=>new Set(clean(t).split(' ').filter(w=>w.length>2));
 const jacc=(a,b)=>{let i=0;a.forEach(x=>b.has(x)&&i++);return i/(a.size+b.size-i||1)};
+const ytKey=()=>store.get('yt-key')||$('#yt-key').value.trim()||(typeof YT_KEY_DEFAULT==='string'?YT_KEY_DEFAULT.trim():'');
+
+/* ---------- Wissensbasis ---------- */
+const SHORTENERS=['bit.ly','tinyurl.com','t.co','goo.gl','ow.ly','is.gd','buff.ly','cutt.ly','shorturl.at','rebrand.ly','t.ly','rb.gy','tiny.cc','s.id','linktr.ee'];
+const STATE_MEDIA=[['rt.com','RT, russisches Staatsmedium, in der EU sanktioniert'],['sputniknews.com','Sputnik, russisches Staatsmedium, in der EU sanktioniert'],['ria.ru','RIA Nowosti, russisches Staatsmedium'],['tass.ru','TASS, russische Staatsagentur'],['tass.com','TASS, russische Staatsagentur'],['cgtn.com','CGTN, chinesisches Staatsmedium'],['globaltimes.cn','Global Times, chinesisches Staatsmedium'],['presstv.ir','Press TV, iranisches Staatsmedium']];
+const stateMedia=d=>{const m=STATE_MEDIA.find(([k])=>d===k||d.endsWith('.'+k));return m?m[1]:null};
+const STRONG_AI=/as an ai language model|as an ai developed|als (ein )?ki-sprachmodell|als künstliche intelligenz kann ich|i cannot fulfill (this|that) request|ich kann (diese|dieser) anfrage nicht|as of my last (knowledge )?(update|cutoff)|stand meines wissens(stands)? \d{4}|regenerate response|i'?m sorry,? but i can'?t (help|assist)/i;
+const WEAK_AI=/\bdelve\b|\btapestry\b|in today'?s fast-paced|es ist wichtig zu beachten|zusammenfassend lässt sich sagen|in der heutigen schnelllebigen|eintauchen in die welt/i;
+const CONTACT_RE=/whats\s?app|wa\.me|telegram|t\.me\/|\bsignal\b|\+\s?\d[\d\s().-]{7,}\d/i;
+const MONEY_RE=/krypto|crypto|bitcoin|\bbtc\b|\beth\b|forex|invest|portfolio|trading|trader|broker|rendite|gewinn|profit|passives? einkommen|verdien|earned|earning|\$\s?\d|\d[\d.,]*\s?(€|euro|usd|dollar|k\b)|finanzberater|financial (advisor|adviser)|mentor|vermögensverwalter/i;
+const PERSON_RE=/(?:\b[Mm]rs?|\b[Mm]s|\b[Mm]iss|\b[Ff]rau|\b[Hh]errn?|\b[Dd]r|\b[Mm]adam|\b[Ss]ir)\.?\s+([A-ZÄÖÜ][a-zäöüß]+(?:\s[A-ZÄÖÜ][a-zäöüß]+)?)/g;
+function genericHandle(h){h=String(h||'').replace(/^@/,'').split('.')[0].split('@')[0];return /\d{4,}/.test(h)||/^user-[a-z0-9]{5,}$/i.test(h)||/[bcdfghjklmnpqrstvwxz]{5,}/i.test(h)}
 
 /* ---------- Netz ---------- */
 class Blocked extends Error{}
@@ -184,6 +226,8 @@ async function getJSON(url){
   if(!r.ok){let msg='';try{const j=await r.json();msg=j.message||j.error?.message||j.error||''}catch(e){}const err=new Error('HTTP '+r.status+(msg?': '+msg:''));err.status=r.status;throw err}
   return r.json();
 }
+const soft=async(fn,fallback=null)=>{try{return await fn()}catch(e){if(e instanceof NeedKey)throw e;return fallback}};
+const progress=m=>setStatus(m);
 
 /* ---------- Plattform erkennen ---------- */
 function detect(input){
@@ -215,7 +259,15 @@ function bskyDomains(post){
 const rkeyOf=uri=>uri.split('/').pop();
 const nodeB=(p,rel)=>({rel,name:p.author?.displayName||p.author?.handle,author:'@'+(p.author?.handle||'?'),time:new Date(p.record?.createdAt||p.indexedAt),text:p.record?.text||'',url:'https://bsky.app/profile/'+(p.author?.handle||p.author?.did)+'/post/'+rkeyOf(p.uri)});
 function quoteUri(p){const e=p.record?.embed;if(!e)return null;if(e.$type==='app.bsky.embed.record')return e.record?.uri;if(e.$type==='app.bsky.embed.recordWithMedia')return e.record?.record?.uri;return null}
-async function bskyAccount(actor){
+const bskyAud=p=>({handle:p.handle,created:p.createdAt?new Date(p.createdAt):null,avatar:!!p.avatar,bio:!!(p.description||'').trim(),did:p.did});
+async function bskyFillCreated(list){
+  const missing=list.filter(x=>!x.created).map(x=>x.did).slice(0,100);
+  for(let i=0;i<missing.length;i+=25){const r=await soft(()=>bq('app.bsky.actor.getProfiles',{actors:missing.slice(i,i+25)}));if(!r)break;
+    r.profiles.forEach(p=>{const t=list.find(x=>x.did===p.did);if(t){t.created=p.createdAt?new Date(p.createdAt):null;t.bio=!!(p.description||'').trim()}})}
+  return list;
+}
+async function bskyAccount(actor,deep){
+  progress('Lade Profil und Beiträge …');
   const prof=await bq('app.bsky.actor.getProfile',{actor});
   const items=[];let cursor;
   for(let i=0;i<3;i++){
@@ -227,34 +279,48 @@ async function bskyAccount(actor){
     }
     cursor=f.cursor;if(!cursor||!f.feed.length)break;
   }
-  return{platform:'Bluesky',account:{name:prof.displayName||prof.handle,handle:'@'+prof.handle,url:'https://bsky.app/profile/'+prof.handle,created:prof.createdAt?new Date(prof.createdAt):null,followers:prof.followersCount,following:prof.followsCount,posts:prof.postsCount,hasAvatar:!!prof.avatar,hasBio:!!(prof.description||'').trim(),botFlag:(prof.labels||[]).some(l=>/bot/i.test(l.val))},items};
+  let followers=null;
+  if(deep&&prof.followersCount>0){progress('Prüfe die neuesten Follower …');
+    const f=await soft(()=>bq('app.bsky.graph.getFollowers',{actor,limit:100}));
+    if(f)followers=await bskyFillCreated(f.followers.map(bskyAud));}
+  return{platform:'Bluesky',account:{name:prof.displayName||prof.handle,handle:'@'+prof.handle,url:'https://bsky.app/profile/'+prof.handle,created:prof.createdAt?new Date(prof.createdAt):null,followers:prof.followersCount,following:prof.followsCount,posts:prof.postsCount,hasAvatar:!!prof.avatar,hasBio:!!(prof.description||'').trim(),botFlag:(prof.labels||[]).some(l=>/bot/i.test(l.val))},items,audience:followers?{label:'Neueste Follower',list:followers}:null};
 }
 async function bskyCoord(text,selfUri){
   const words=clean(text).split(' ').filter(w=>w.length>2);
   if(words.length<5)return{note:'Der Text ist zu kurz für einen Abgleich mit anderen Konten.'};
   let r;try{r=await bq('app.bsky.feed.searchPosts',{q:words.slice(0,10).join(' '),limit:50,sort:'latest'})}
-  catch(e){return{note:'Die Bluesky-Suche hat nicht geantwortet ('+e.message+'). Sie verlangt teils eine Anmeldung; das ist der nächste Ausbauschritt.'}}
+  catch(e){return{note:'Die Bluesky-Suche hat nicht geantwortet ('+e.message+'). Sie verlangt teils eine Anmeldung.'}}
   const base=new Set(words);
-  const hits=(r.posts||[]).filter(p=>p.uri!==selfUri).map(p=>({...nodeB(p,''),sim:jacc(base,new Set(clean(p.record?.text).split(' ').filter(w=>w.length>2)))})).filter(h=>h.sim>=.5).sort((a,b)=>a.time-b.time);
+  const hits=(r.posts||[]).filter(p=>p.uri!==selfUri).map(p=>({...nodeB(p,''),sim:jacc(base,wordSet(p.record?.text))})).filter(h=>h.sim>=.5).sort((a,b)=>a.time-b.time);
   return{hits};
 }
-async function bskyPost(actor,rkey){
+async function bskyPost(actor,rkey,deep){
   const did=await bskyDid(actor);
   const uri=`at://${did}/app.bsky.feed.post/${rkey}`;
+  progress('Lade Beitrag und Verbreitungsweg …');
   const th=await bq('app.bsky.feed.getPostThread',{uri,depth:0,parentHeight:20});
   const post=th.thread.post;
   const chain=[];
   let p=th.thread.parent;while(p&&p.post){chain.push(nodeB(p.post,'Antwort auf'));p=p.parent}
   let q=quoteUri(post),g=0;
   while(q&&g++<6){const r=await bq('app.bsky.feed.getPosts',{uris:q});const qp=r.posts?.[0];if(!qp)break;chain.push(nodeB(qp,'zitiert'));q=quoteUri(qp)}
+  progress('Suche gleiche Texte anderer Konten …');
   const coord=await bskyCoord(post.record?.text,post.uri);
-  const model=await bskyAccount(did);
-  return{model,post:{...nodeB(post,'Geprüfter Beitrag'),reposts:post.repostCount,likes:post.likeCount,quotes:post.quoteCount},chain,coord};
+  let spread=null;
+  if(deep&&(post.repostCount||post.likeCount)){progress('Prüfe, wer den Beitrag verbreitet …');
+    const rb=await soft(()=>bq('app.bsky.feed.getRepostedBy',{uri,limit:100}),{repostedBy:[]});
+    const lk=await soft(()=>bq('app.bsky.feed.getLikes',{uri,limit:100}),{likes:[]});
+    const seen=new Map();rb.repostedBy.forEach(x=>seen.set(x.did,bskyAud(x)));lk.likes.forEach(x=>seen.has(x.actor.did)||seen.set(x.actor.did,bskyAud(x.actor)));
+    spread=await bskyFillCreated([...seen.values()]);}
+  const model=await bskyAccount(did,deep);
+  return{model,post:{...nodeB(post,'Geprüfter Beitrag'),reposts:post.repostCount,likes:post.likeCount,quotes:post.quoteCount},chain,coord,spread:spread?{label:'Wer teilt und liked',list:spread}:null};
 }
 
 /* ---------- Mastodon ---------- */
 function htmlInfo(h){const d=new DOMParser().parseFromString(h||'','text/html');const links=[...d.querySelectorAll('a[href]')].filter(a=>!a.classList.contains('mention')&&!a.classList.contains('hashtag')&&!/\/tags\//.test(a.href)).map(a=>domainOf(a.href)).filter(Boolean);return{text:(d.body.textContent||'').trim(),links}}
-async function mastoAccount(host,user){
+const mastoAud=a=>({handle:a.acct,created:a.created_at?new Date(a.created_at):null,avatar:!/missing/.test(a.avatar||''),bio:!!htmlInfo(a.note).text});
+async function mastoAccount(host,user,deep){
+  progress('Lade Mastodon-Konto …');
   const a=await getJSON(`https://${host}/api/v1/accounts/lookup?acct=${encodeURIComponent(user)}`);
   const items=[];let max;
   for(let i=0;i<3;i++){
@@ -263,50 +329,71 @@ async function mastoAccount(host,user){
     st.forEach(s=>{const rb=!!s.reblog;const h=rb?{text:'',links:[]}:htmlInfo(s.content);items.push({time:new Date(s.created_at),text:h.text,kind:rb?'repost':(s.in_reply_to_id?'reply':'post'),domains:[...new Set(h.links.concat(s.card?.url?[domainOf(s.card.url)]:[]))].filter(Boolean)})});
     max=st[st.length-1].id;
   }
-  return{platform:'Mastodon',account:{name:a.display_name||a.username,handle:'@'+a.acct+(a.acct.includes('@')?'':'@'+host),url:a.url,created:new Date(a.created_at),followers:a.followers_count,following:a.following_count,posts:a.statuses_count,hasAvatar:!/missing/.test(a.avatar||''),hasBio:!!htmlInfo(a.note).text,botFlag:!!a.bot},items};
+  let followers=null;
+  if(deep&&a.followers_count>0){progress('Prüfe die neuesten Follower …');const f=await soft(()=>getJSON(`https://${host}/api/v1/accounts/${a.id}/followers?limit=80`));if(f)followers=f.map(mastoAud)}
+  return{platform:'Mastodon',account:{name:a.display_name||a.username,handle:'@'+a.acct+(a.acct.includes('@')?'':'@'+host),url:a.url,created:new Date(a.created_at),followers:a.followers_count,following:a.following_count,posts:a.statuses_count,hasAvatar:!/missing/.test(a.avatar||''),hasBio:!!htmlInfo(a.note).text,botFlag:!!a.bot},items,audience:followers?{label:'Neueste Follower',list:followers}:null};
 }
-async function mastoPost(host,user,id){
+async function mastoPost(host,user,id,deep){
   const s=await getJSON(`https://${host}/api/v1/statuses/${id}`);
   const nodeM=(x,rel)=>({rel,name:x.account.display_name||x.account.username,author:'@'+x.account.acct,time:new Date(x.created_at),text:htmlInfo(x.content).text,url:x.url||x.uri});
   const chain=[];
   if(s.reblog)chain.push(nodeM(s.reblog,'teilt'));
-  if(s.in_reply_to_id){try{const c=await getJSON(`https://${host}/api/v1/statuses/${id}/context`);c.ancestors.slice().reverse().forEach(x=>chain.push(nodeM(x,'Antwort auf')))}catch(e){}}
-  const model=await mastoAccount(host,user);
-  return{model,post:{...nodeM(s,'Geprüfter Beitrag'),reposts:s.reblogs_count,likes:s.favourites_count},chain,coord:{note:'Volltextsuche nach gleichen Texten ist bei Mastodon nur angemeldet möglich.'}};
+  if(s.in_reply_to_id){const c=await soft(()=>getJSON(`https://${host}/api/v1/statuses/${id}/context`));if(c)c.ancestors.slice().reverse().forEach(x=>chain.push(nodeM(x,'Antwort auf')))}
+  let spread=null;
+  if(deep&&s.reblogs_count){const r=await soft(()=>getJSON(`https://${host}/api/v1/statuses/${id}/reblogged_by?limit=80`));if(r)spread={label:'Wer teilt',list:r.map(mastoAud)}}
+  const model=await mastoAccount(host,user,deep);
+  return{model,post:{...nodeM(s,'Geprüfter Beitrag'),reposts:s.reblogs_count,likes:s.favourites_count},chain,spread,coord:{note:'Volltextsuche nach gleichen Texten ist bei Mastodon nur angemeldet möglich.'}};
 }
 
 /* ---------- YouTube ---------- */
 const YT='https://www.googleapis.com/youtube/v3/';
-async function yq(m,p){const key=store.get('yt-key')||$('#yt-key').value.trim()||YT_KEY_DEFAULT;if(!key)throw new NeedKey();return getJSON(YT+m+'?'+new URLSearchParams({...p,key}))}
+async function yq(m,p){const key=ytKey();if(!key)throw new NeedKey();return getJSON(YT+m+'?'+new URLSearchParams({...p,key}))}
 async function ytChannel(sel){
+  progress('Lade Kanal …');
   const c=(await yq('channels',{part:'snippet,statistics,contentDetails',...sel})).items?.[0];
-  if(!c)throw new Error('Kanal nicht gefunden.');
+  if(!c){const e=new Error('Kanal nicht gefunden.');e.status=404;throw e}
   const items=[];let tok;
-  for(let i=0;i<2;i++){const p={part:'snippet,contentDetails',playlistId:c.contentDetails.relatedPlaylists.uploads,maxResults:50};if(tok)p.pageToken=tok;let pl;try{pl=await yq('playlistItems',p)}catch(e){break}
+  for(let i=0;i<2;i++){const p={part:'snippet,contentDetails',playlistId:c.contentDetails.relatedPlaylists.uploads,maxResults:50};if(tok)p.pageToken=tok;const pl=await soft(()=>yq('playlistItems',p));if(!pl)break;
     pl.items.forEach(it=>items.push({time:new Date(it.contentDetails.videoPublishedAt||it.snippet.publishedAt),text:it.snippet.title,kind:'post',domains:[]}));tok=pl.nextPageToken;if(!tok)break}
   return{platform:'YouTube',account:{name:c.snippet.title,handle:c.snippet.customUrl||c.id,url:'https://www.youtube.com/'+(c.snippet.customUrl||'channel/'+c.id),created:new Date(c.snippet.publishedAt),followers:c.statistics.hiddenSubscriberCount?null:+c.statistics.subscriberCount,following:null,posts:+c.statistics.videoCount,hasAvatar:true,hasBio:!!(c.snippet.description||'').trim(),botFlag:false},items};
 }
-async function ytVideo(id){
-  const v=(await yq('videos',{part:'snippet,statistics',id})).items?.[0];if(!v)throw new Error('Video nicht gefunden.');
-  const list=[];let tok,note='';
-  for(let i=0;i<3;i++){const p={part:'snippet',videoId:id,maxResults:100,order:'time',textFormat:'plainText'};if(tok)p.pageToken=tok;let r;
-    try{r=await yq('commentThreads',p)}catch(e){if(!i)note='Kommentare nicht abrufbar ('+e.message+').';break}
-    r.items.forEach(t=>{const s=t.snippet.topLevelComment.snippet;list.push({author:s.authorDisplayName,authorId:s.authorChannelId?.value,text:s.textOriginal||s.textDisplay||'',time:new Date(s.publishedAt)})});tok=r.nextPageToken;if(!tok)break}
-  const ids=[...new Set(list.map(c=>c.authorId).filter(Boolean))].slice(0,200);const ages={};
-  for(let i=0;i<ids.length;i+=50){try{(await yq('channels',{part:'snippet',id:ids.slice(i,i+50).join(',')})).items.forEach(c=>ages[c.id]=new Date(c.snippet.publishedAt))}catch(e){break}}
+const ytC=(s,thread,isReply)=>({author:s.authorDisplayName,authorId:s.authorChannelId?.value,text:s.textOriginal||s.textDisplay||'',time:new Date(s.publishedAt),likes:s.likeCount||0,thread,isReply});
+async function ytVideo(id,deep){
+  progress('Lade Video …');
+  const v=(await yq('videos',{part:'snippet,statistics',id})).items?.[0];if(!v){const e=new Error('Video nicht gefunden.');e.status=404;throw e}
+  const list=[];let tok,note='';const threadsMissing=[];
+  for(let i=0;i<(deep?4:2);i++){progress(`Lade Kommentare (${list.length}) …`);
+    const p={part:'snippet,replies',videoId:id,maxResults:100,order:i<2?'time':'relevance',textFormat:'plainText'};if(tok&&i!==2)p.pageToken=tok;let r;
+    try{r=await yq('commentThreads',p)}catch(e){if(e instanceof NeedKey)throw e;if(!i)note='Kommentare nicht abrufbar ('+e.message+'). Oft sind sie für dieses Video abgeschaltet.';break}
+    r.items.forEach(t=>{if(list.some(c=>c.thread===t.id&&!c.isReply))return;list.push(ytC(t.snippet.topLevelComment.snippet,t.id,false));const reps=t.replies?.comments||[];reps.forEach(c=>list.push(ytC(c.snippet,t.id,true)));if(t.snippet.totalReplyCount>reps.length)threadsMissing.push([t.id,t.snippet.totalReplyCount])});
+    tok=r.nextPageToken;if(i<1&&!tok)i=1;}
+  if(deep){threadsMissing.sort((a,b)=>b[1]-a[1]);
+    for(const[tid]of threadsMissing.slice(0,25)){progress(`Lade Antworten (${list.length}) …`);const r=await soft(()=>yq('comments',{part:'snippet',parentId:tid,maxResults:100,textFormat:'plainText'}));if(!r)continue;
+      const have=new Set(list.filter(c=>c.thread===tid).map(c=>c.text+c.author));r.items.forEach(c=>{const x=ytC(c.snippet,tid,true);if(!have.has(x.text+x.author))list.push(x)})}}
+  progress('Prüfe Alter der kommentierenden Konten …');
+  const ids=[...new Set(list.map(c=>c.authorId).filter(Boolean))].slice(0,deep?400:150);const ages={};
+  for(let i=0;i<ids.length;i+=50){const r=await soft(()=>yq('channels',{part:'snippet',id:ids.slice(i,i+50).join(',')}));if(!r)break;r.items.forEach(c=>ages[c.id]=new Date(c.snippet.publishedAt))}
   list.forEach(c=>c.authorCreated=ages[c.authorId]||null);
   const model=await ytChannel({id:v.snippet.channelId});
   return{model,video:{title:v.snippet.title,published:new Date(v.snippet.publishedAt),views:+v.statistics.viewCount,likes:+(v.statistics.likeCount||0),comments:+(v.statistics.commentCount||0),url:'https://www.youtube.com/watch?v='+id},comments:{list,note}};
 }
 
 /* ---------- Auswertung ---------- */
-const STRONG_AI=/as an ai language model|as an ai developed|als (ein )?ki-sprachmodell|als künstliche intelligenz kann ich|i cannot fulfill (this|that) request|ich kann (diese|dieser) anfrage nicht|as of my last (knowledge )?(update|cutoff)|stand meines wissens(stands)? \d{4}|regenerate response|i'?m sorry,? but i can'?t (help|assist)/i;
-const WEAK_AI=/\bdelve\b|\btapestry\b|in today'?s fast-paced|es ist wichtig zu beachten|zusammenfassend lässt sich sagen|in der heutigen schnelllebigen|eintauchen in die welt/i;
 function longestZeroRun(h){let best=0,cur=0;for(let i=0;i<48;i++){if(h[i%24]===0){cur++;best=Math.max(best,cur)}else cur=0}return Math.min(best,24)}
 function maxInWindow(times,ms){let best=0,j=0;for(let i=0;i<times.length;i++){while(times[i]-times[j]>ms)j++;best=Math.max(best,i-j+1)}return best}
+function mkAdder(S){return(label,pts,detail,state)=>S.push({label,pts,detail,state:state||(pts>=2?'hit':pts>0?'soft':'ok')})}
+function clusterTexts(items,getText,getAuthor){
+  const prepared=items.map((x,i)=>{const t=getText(x);const ws=wordSet(t);return{i,x,ws,key:clean(t)}}).filter(p=>p.key.length>=15);
+  const used=new Set(),groups=[];
+  for(let a=0;a<prepared.length;a++){if(used.has(a))continue;const A=prepared[a];const g=[A.x];used.add(a);
+    for(let b=a+1;b<prepared.length;b++){if(used.has(b))continue;const B=prepared[b];
+      const same=A.key===B.key||(A.ws.size>=4&&B.ws.size>=4&&jacc(A.ws,B.ws)>=.8);if(same){g.push(B.x);used.add(b)}}
+    if(g.length>1)groups.push(g)}
+  return groups.filter(g=>!getAuthor||new Set(g.map(getAuthor)).size>1).sort((x,y)=>y.length-x.length);
+}
 
 function analyzeAccount(m){
-  const S=[],a=m.account;const add=(label,pts,detail,state)=>S.push({label,pts,detail,state:state||(pts>=2?'hit':pts>0?'soft':'ok')});
+  const S=[],a=m.account,add=mkAdder(S);
   const all=m.items||[];
   const timed=all.filter(x=>x.time&&!isNaN(x.time));
   const full=timed.filter(x=>!x.timeOnly).sort((x,y)=>x.time-y.time);
@@ -323,30 +410,33 @@ function analyzeAccount(m){
   else add('Beitragsmenge',0,'Zu wenige Angaben.','na');
 
   const hist=Array(24).fill(0);timed.forEach(x=>hist[x.time.getHours()]++);
-  let gap=null;
-  if(timed.length>=30){gap=longestZeroRun(hist);const p=gap<=1?2:gap<=3?1:0;add('Ruhephase',p,gap===0?'Aktiv in allen 24 Stunden des Tages. Menschen schlafen.':`Längste Pause im Tagesverlauf: ${gap} Stunden.`+(p?' Sehr kurze Ruhephasen sprechen für Automatisierung oder Schichtbetrieb.':''))}
+  if(timed.length>=30){const gap=longestZeroRun(hist);const p=gap<=1?2:gap<=3?1:0;add('Ruhephase',p,gap===0?'Aktiv in allen 24 Stunden des Tages. Menschen schlafen.':`Längste Pause im Tagesverlauf: ${gap} Stunden.`+(p?' Sehr kurze Ruhephasen sprechen für Automatisierung oder Schichtbetrieb.':''))}
   else add('Ruhephase',0,`Braucht mindestens 30 Zeitstempel (vorhanden: ${timed.length}).`,'na');
 
   if(full.length>=20){const d=[];for(let i=1;i<full.length;i++)d.push(full[i].time-full[i-1].time);const mean=d.reduce((s,x)=>s+x,0)/d.length;const sd=Math.sqrt(d.reduce((s,x)=>s+(x-mean)**2,0)/d.length);const cv=sd/(mean||1);const p=cv<.35?2:cv<.6?1:0;
-    add('Gleichmäßiger Takt',p,`Schwankung der Abstände: ${fmtN(cv,2)} (Menschen liegen meist deutlich über 1).`+(p?` Abstände von etwa ${fmtN(mean/6e4,0)} Minuten wirken getaktet.`:''))
+    add('Gleichmäßiger Takt',p,`Schwankung der Abstände: ${fmtN(cv,2)} (Menschen liegen meist deutlich über 1).`+(p?` Abstände von etwa ${fmtN(mean/6e4,0)} Minuten wirken getaktet.`:''));
     const b=maxInWindow(full.map(x=>+x.time),36e5);add('Spitzen',b>=30?2:b>=15?1:0,`Höchstens ${b} Beiträge innerhalb einer Stunde.`)}
   else add('Gleichmäßiger Takt',0,'Braucht mindestens 20 vollständige Zeitstempel.','na');
 
   let dupGroups=[];
-  if(texts.length>=8){const g={};texts.forEach(x=>{const k=clean(x.text);(g[k]=g[k]||[]).push(x)});dupGroups=Object.values(g).filter(v=>v.length>1).sort((x,y)=>y.length-x.length);
+  if(texts.length>=8){dupGroups=clusterTexts(texts,x=>x.text);
     const dupN=dupGroups.reduce((s,v)=>s+v.length,0);const r=dupN/texts.length;const p=r>.3?3:r>.1?2:0;
-    add('Wiederholte Texte',p,`${fmtN(r*100)} % der Texte kommen mehrfach vor (${dupN} von ${texts.length}).`+(p?' Copy-Paste in Serie ist typisch für Kampagnen-Konten.':''))}
+    add('Wiederholte Texte',p,`${pct(r)} der Texte kommen gleich oder fast gleich mehrfach vor (${dupN} von ${texts.length}).`+(p?' Copy-Paste in Serie ist typisch für Kampagnen-Konten.':''))}
   else add('Wiederholte Texte',0,'Zu wenige Texte für einen Vergleich.','na');
 
-  if(timed.length>=20&&m.platform!=='YouTube'){const rs=timed.filter(x=>x.kind==='repost').length/timed.length;add('Nur Weiterverbreitung',rs>.85?1:0,`${fmtN(rs*100)} % der Aktivität sind Reposts.`)}
+  if(timed.length>=20&&m.platform!=='YouTube'){const rs=timed.filter(x=>x.kind==='repost').length/timed.length;add('Nur Weiterverbreitung',rs>.85?1:0,`${pct(rs)} der Aktivität sind Reposts.`)}
 
   if(a.followers!=null&&a.following!=null){const p=a.following>500&&a.following>10*Math.max(1,a.followers)?1:0;add('Folgen-Verhältnis',p,`Folgt ${fmtN(a.following)} Konten, hat ${fmtN(a.followers)} Follower.`+(p?' Massenhaftes Folgen ohne Rückhalt ist ein typisches Reichweiten-Muster.':''))}
 
-  if(a.hasAvatar!=null){const p=!a.hasAvatar&&!a.hasBio?1:0;add('Profil',p,p?'Weder Profilbild noch Profiltext.':`Profilbild ${a.hasAvatar?'vorhanden':'fehlt'}, Profiltext ${a.hasBio?'vorhanden':'fehlt'}.`)}
+  if(a.hasAvatar!=null&&m.platform!=='YouTube'){const p=!a.hasAvatar&&!a.hasBio?1:0;add('Profil',p,p?'Weder Profilbild noch Profiltext.':`Profilbild ${a.hasAvatar?'vorhanden':'fehlt'}, Profiltext ${a.hasBio?'vorhanden':'fehlt'}.`)}
+  if(a.handle&&genericHandle(a.handle))add('Name',1,'Der Name sieht automatisch erzeugt aus (lange Ziffernfolge oder Zufallsbuchstaben).');
 
   const dc={};let dn=0;all.forEach(x=>(x.domains||[]).forEach(d=>{dc[d]=(dc[d]||0)+1;dn++}));
   const doms=Object.entries(dc).sort((x,y)=>y[1]-x[1]);
-  if(dn>=10){const share=doms[0][1]/dn;add('Link-Ziele',share>.5?1:0,`Häufigstes Ziel: ${doms[0][0]} (${fmtN(share*100)} % aller Links).`+(share>.5?' Ein Konto, das fast nur eine Seite bewirbt, ist oft Teil einer Verbreitungskampagne.':''))}
+  if(dn>=10){const share=doms[0][1]/dn;add('Link-Ziele',share>.5?1:0,`Häufigstes Ziel: ${doms[0][0]} (${pct(share)} aller Links).`+(share>.5?' Ein Konto, das fast nur eine Seite bewirbt, ist oft Teil einer Verbreitungskampagne.':''));
+    const sh=doms.filter(([d])=>SHORTENERS.includes(d)).reduce((s,[,c])=>s+c,0)/dn;if(sh>.3)add('Verschleierte Links',1,`${pct(sh)} der Links laufen über Kurz-URL-Dienste. Das versteckt das eigentliche Ziel.`)}
+  const sm=doms.map(([d,c])=>[stateMedia(d),c]).filter(x=>x[0]);
+  if(sm.length)add('Quellen',0,'Verlinkt Staatsmedien: '+sm.map(([n,c])=>`${n} (${c}×)`).join('; ')+'. Das ist kein Bot-Signal, aber wichtig für die Einordnung der Inhalte.','info');
 
   const strong=texts.filter(x=>STRONG_AI.test(x.text)),weak=texts.filter(x=>WEAK_AI.test(x.text));
   if(strong.length)add('Chatbot-Reste im Text',3,`${strong.length} Beitrag/Beiträge enthalten typische Chatbot-Antwortsätze, die beim Kopieren mitgerutscht sind. Das ist eine eindeutige Spur.`);
@@ -354,24 +444,66 @@ function analyzeAccount(m){
 
   if(a.botFlag)add('Als Bot gekennzeichnet',0,'Das Konto erklärt sich selbst als automatisiert. Das ist transparent und kein Täuschungssignal.','info');
 
-  const score=S.reduce((s,x)=>s+x.pts,0);const evaluated=S.filter(x=>x.state!=='na').length;
+  const score=S.reduce((s,x)=>s+x.pts,0);const evaluated=S.filter(x=>x.state!=='na'&&x.state!=='info').length;
   return{signals:S,score,evaluated,hist,dupGroups,doms,timedN:timed.length};
 }
 
+function analyzeAudience(aud){
+  const list=aud.list,S=[],add=mkAdder(S),n=list.length;
+  if(n<10)return{signals:[{label:aud.label,pts:0,detail:`Nur ${n} Konten, zu wenig für Muster.`,state:'na'}],score:0,n};
+  const known=list.filter(x=>x.created&&!isNaN(x.created));
+  let byDay=[];
+  if(known.length>=10){
+    const fresh=known.filter(x=>(Date.now()-x.created)/864e5<30).length/known.length;
+    add('Frische Konten',fresh>.5?2:fresh>.25?1:0,`${pct(fresh)} sind jünger als 30 Tage.`+(fresh>.25?' Eine Häufung neuer Konten ist typisch für gekaufte oder gesteuerte Reichweite.':''));
+    const dc={};known.forEach(x=>{const k=x.created.toISOString().slice(0,10);dc[k]=(dc[k]||0)+1});byDay=Object.entries(dc).sort((a,b)=>b[1]-a[1]);
+    const[day,cnt]=byDay[0];const share=cnt/known.length;
+    add('Am selben Tag erstellt',cnt>=5&&share>=.15?2:cnt>=3&&share>=.08?1:0,`Bis zu ${cnt} Konten wurden am selben Tag erstellt (${fmtDate(new Date(day))}).`+(cnt>=5&&share>=.15?' Bot-Netze werden oft in einem Rutsch angelegt.':''));
+  } else add('Kontoalter',0,'Erstellungsdaten nicht verfügbar.','na');
+  const empty=list.filter(x=>!x.avatar&&!x.bio).length/n;
+  add('Leere Profile',empty>.5?2:empty>.25?1:0,`${pct(empty)} ohne Profilbild und ohne Profiltext.`);
+  const gen=list.filter(x=>genericHandle(x.handle)).length/n;
+  add('Automatisch wirkende Namen',gen>.4?1:0,`${pct(gen)} mit Ziffernfolgen oder Zufallsbuchstaben im Namen.`);
+  return{signals:S,score:S.reduce((s,x)=>s+x.pts,0),n,byDay};
+}
+
 function analyzeComments(list){
-  const S=[];const add=(label,pts,detail,state)=>S.push({label,pts,detail,state:state||(pts>=2?'hit':pts>0?'soft':'ok')});
-  const n=list.length;if(n<10)return{signals:[{label:'Kommentare',pts:0,detail:`Nur ${n} Kommentare, zu wenig für Muster.`,state:'na'}],score:0,groups:[]};
-  const g={};list.forEach(c=>{const k=clean(c.text);if(k.length>=15)(g[k]=g[k]||[]).push(c)});
-  const groups=Object.values(g).filter(v=>v.length>1&&new Set(v.map(c=>c.authorId||c.author)).size>1).sort((x,y)=>y.length-x.length);
+  const S=[],add=mkAdder(S);const n=list.length;
+  if(n<10)return{signals:[{label:'Kommentare',pts:0,detail:`Nur ${n} Kommentare, zu wenig für Muster.`,state:'na'}],score:0,groups:[],scamThreads:[],names:[],n};
+  const authorOf=c=>c.authorId||c.author;
+  const groups=clusterTexts(list,c=>c.text,authorOf).filter(g=>clean(g[0].text).split(' ').length>=6||MONEY_RE.test(g[0].text)||CONTACT_RE.test(g[0].text)||/https?:\/\//.test(g[0].text));
   const dupN=groups.reduce((s,v)=>s+v.length,0);const r=dupN/n;
-  add('Gleiche Kommentare verschiedener Konten',r>.15?3:r>.05?2:0,`${dupN} von ${n} Kommentaren sind wortgleich mit denen anderer Konten.`);
+  add('Gleiche Kommentare verschiedener Konten',r>.15?3:r>.05?2:dupN>=3?1:0,`${dupN} von ${n} Kommentaren sind gleich oder fast gleich wie die anderer Konten.`);
+
+  /* Betrugsnetz: wiederkehrender Name im Geld-Kontext */
+  const nameAuthors={};
+  list.forEach(c=>{if(!MONEY_RE.test(c.text))return;for(const m of c.text.matchAll(PERSON_RE)){const k=m[1];(nameAuthors[k]=nameAuthors[k]||new Set()).add(authorOf(c))}});
+  const names=Object.entries(nameAuthors).map(([k,s])=>[k,s.size]).filter(x=>x[1]>=2).sort((a,b)=>b[1]-a[1]);
+  if(names.length)add('Empfohlene Person im Geld-Kontext',names[0][1]>=3?3:2,`„${names[0][0]}“ wird von ${names[0][1]} verschiedenen Konten als Geldquelle oder Beraterin gelobt. Das ist das typische Muster von Anlagebetrug-Netzen.`);
+
+  const threads={};list.forEach(c=>(threads[c.thread]=threads[c.thread]||[]).push(c));
+  const scamThreads=Object.values(threads).filter(t=>{const reps=t.filter(c=>c.isReply);if(reps.length<2)return false;
+    const money=new Set(t.filter(c=>MONEY_RE.test(c.text)).map(authorOf));const contact=t.some(c=>CONTACT_RE.test(c.text));const nm=t.some(c=>names.some(([k])=>c.text.includes(k)));
+    return money.size>=3||(money.size>=2&&(contact||nm))}).sort((a,b)=>b.length-a.length);
+  const replies=list.filter(c=>c.isReply).length;
+  if(replies)add('Inszenierte Antwort-Gespräche',scamThreads.length>=3?3:scamThreads.length?2:0,scamThreads.length?`${scamThreads.length} Kommentar-Verläufe, in denen sich mehrere Konten gegenseitig Geld-Erfolge bestätigen.`:`${replies} Antworten geprüft, keine inszenierten Gespräche gefunden.`);
+  else add('Antworten',0,'Keine Antworten geladen. Mit „Gründlich“ werden sie mitgeprüft.','na');
+
+  const contact=list.filter(c=>CONTACT_RE.test(c.text)).length;
+  add('Kontaktdaten in Kommentaren',contact>=3?2:contact?1:0,contact?`${contact} Kommentare nennen WhatsApp, Telegram oder Telefonnummern. Seriöse Kommentare tun das fast nie.`:'Keine Kontaktdaten gefunden.');
+
   const known=list.filter(c=>c.authorCreated);
-  if(known.length>=10){const fresh=known.filter(c=>(c.time-c.authorCreated)/864e5<30).length/known.length;add('Frische Konten',fresh>.3?2:fresh>.15?1:0,`${fmtN(fresh*100)} % der Kommentierenden hatten ihr Konto beim Kommentieren seit weniger als 30 Tagen.`)}
+  if(known.length>=10){const fresh=known.filter(c=>(c.time-c.authorCreated)/864e5<30).length/known.length;add('Frische Konten',fresh>.3?2:fresh>.15?1:0,`${pct(fresh)} der Kommentierenden hatten ihr Konto beim Kommentieren seit weniger als 30 Tagen.`)}
+  const auto=list.filter(c=>/^@?user-[a-z0-9]{6,}$/i.test(c.author||'')||genericHandle(c.author)).length/n;
+  add('Automatisch wirkende Namen',auto>.35?1:0,`${pct(auto)} mit Standard- oder Zufallsnamen (z. B. @user-k3j9x2).`);
+
   const t=list.map(c=>+c.time).sort((x,y)=>x-y);const b=maxInWindow(t,6e5);const bs=b/n;
-  add('Kommentarwelle',bs>.4&&b>=15?2:bs>.25&&b>=10?1:0,`Bis zu ${b} Kommentare innerhalb von 10 Minuten (${fmtN(bs*100)} % aller geladenen).`);
+  add('Kommentarwelle',bs>.4&&b>=15?2:bs>.25&&b>=10?1:0,`Bis zu ${b} Kommentare innerhalb von 10 Minuten (${pct(bs)} aller geladenen).`);
+  const per={};list.forEach(c=>per[authorOf(c)]=(per[authorOf(c)]||0)+1);const top=Object.entries(per).sort((a,b)=>b[1]-a[1])[0];
+  if(top&&top[1]>=6)add('Vielschreiber',1,`Ein Konto (${list.find(c=>authorOf(c)===top[0])?.author}) hat ${top[1]} Kommentare geschrieben.`);
   const generic=list.filter(c=>/^[\p{Emoji}\s!.❤️👍🔥]*$/u.test(c.text)||/^(great|nice|amazing|awesome|super|top|wow|toll|klasse|danke|stark|genau so)( video| content)?[\s!.]*$/i.test(c.text.trim())).length/n;
-  add('Floskel-Kommentare',generic>.4?1:0,`${fmtN(generic*100)} % bestehen nur aus Emojis oder Einwort-Lob.`);
-  return{signals:S,score:S.reduce((s,x)=>s+x.pts,0),groups};
+  add('Floskel-Kommentare',generic>.4?1:0,`${pct(generic)} bestehen nur aus Emojis oder Einwort-Lob.`);
+  return{signals:S,score:S.reduce((s,x)=>s+x.pts,0),groups,scamThreads,names,n,replies};
 }
 const levelOf=s=>s>=6?[2,'stark auffällig']:s>=3?[1,'auffällig']:[0,'unauffällig'];
 
@@ -386,6 +518,7 @@ function signalList(S){return`<ul class="signals">${S.map(x=>`<li><span class="p
 function verdict(score,note){const[l,t]=levelOf(score);const pos=Math.min(score,12)/12*100;
   return`<div class="verdict"><div class="lvl l${l}">${t}</div><div class="meter"><div class="bar"><i style="left:${pos}%"></i></div><div class="scale"><span>0</span><span>3</span><span>6</span><span>12+ Punkte</span></div></div></div><p class="hint">${esc(score)} Verdachtspunkte. ${esc(note)}</p>`}
 function nodeLi(n,origin){return`<li class="${origin?'origin':''}"><div class="meta">${esc(n.rel?n.rel+' · ':'')}${esc(n.author)} · ${fmtDT(n.time)}${n.sim!=null?' · '+fmtN(n.sim*100)+' % gleich':''}${origin?' · frühester Fund':''}</div><p class="quote">${esc(n.text.slice(0,280))}${n.text.length>280?'…':''}</p>${n.url?`<a href="${esc(n.url)}" target="_blank" rel="noopener">öffnen</a>`:''}</li>`}
+function commentLi(c){return`<div class="meta">${esc(c.author)} · ${fmtDT(c.time)}${c.authorCreated?' · Konto '+fmtAge((c.time-c.authorCreated)/864e5)+' alt':''}</div><p class="quote">${esc(c.text.slice(0,240))}${c.text.length>240?'…':''}</p>`}
 function provenanceLinks(url,text){
   const q=clean(text).split(' ').slice(0,12).join(' ');const L=[];
   if(url)L.push(['Archiv (Wayback Machine)','https://web.archive.org/web/*/'+url]);
@@ -393,9 +526,33 @@ function provenanceLinks(url,text){
   L.push(['Bild rückwärts suchen (TinEye)','https://tineye.com/'],['Google Lens','https://lens.google.com/'],['Content Credentials prüfen','https://contentcredentials.org/verify']);
   return`<div class="links">${L.map(([t,u])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join('')}</div>`;
 }
+function audienceBlock(aud,an){return`<h2>${esc(aud.label)}</h2><p class="hint">Stichprobe von ${an.n} Konten.</p>${signalList(an.signals)}`}
 
-function renderReport({model,post,chain,coord,video,comments,manualUrl}){
-  const a=model.account,an=analyzeAccount(model);let h='';
+let lastReport=null;
+function renderReport(r){
+  const{model,post,chain,coord,video,comments,manualUrl,spread}=r;
+  const a=model.account,an=analyzeAccount(model);
+  const sections=[];let h='';
+  const accAud=model.audience?analyzeAudience(model.audience):null;
+  const sprAud=spread?analyzeAudience(spread):null;
+  const ca=video&&!comments.note?analyzeComments(comments.list):null;
+  let coordPts=0,coordSig=null;
+  if(coord?.hits?.length){const accts=new Set(coord.hits.map(x=>x.author)).size;const span=(coord.hits[coord.hits.length-1].time-coord.hits[0].time)/36e5;coordPts=accts>=5&&span<24?3:accts>=3?1:0;
+    coordSig={label:'Gleicher Text bei anderen Konten',pts:coordPts,state:coordPts>=2?'hit':coordPts?'soft':'ok',detail:`${coord.hits.length} fast gleiche Beiträge von ${accts} Konten innerhalb von ${fmtN(span,1)} Stunden.`}}
+
+  /* Gesamtbild */
+  const parts=[['Konto',an.score,an.signals]];
+  if(accAud)parts.push([model.audience.label,accAud.score,accAud.signals]);
+  if(sprAud)parts.push([spread.label,sprAud.score,sprAud.signals]);
+  if(ca)parts.push(['Kommentare',ca.score,ca.signals]);
+  if(coordSig)parts.push(['Koordination',coordPts,[coordSig]]);
+  const total=parts.reduce((s,p)=>s+p[1],0);const[lvl,lvlT]=levelOf(total);
+  const strongest=parts.flatMap(p=>p[2].map(s=>({...s,sec:p[0]}))).filter(s=>s.pts>0).sort((x,y)=>y.pts-x.pts).slice(0,3);
+  h+=`<section class="card summary l${lvl}">${model.demo?'<div class="demo-flag">Beispieldaten · fiktiv</div>':''}<h3>Gesamtbild</h3><div class="acct"><h2>${esc(video?video.title:post?('Beitrag von '+post.author):(a.name||'Konto'))}</h2><span class="h">${esc(model.platform)}</span></div>
+    ${verdict(total,parts.map(p=>`${p[0]}: ${p[1]}`).join(' · ')+'.')}
+    ${strongest.length?`<h3>Stärkste Hinweise</h3><ol class="top3">${strongest.map(s=>`<li><b>${esc(s.label)}</b> <span class="meta">(${esc(s.sec)}, +${s.pts})</span></li>`).join('')}</ol>`:'<p class="hint">Keine nennenswerten Auffälligkeiten.</p>'}
+    <div class="row"><button class="btn ghost small" type="button" id="copy-rep">Befund kopieren</button></div><div id="copy-fallback"></div></section>`;
+
   if(post){
     const all=[...(chain||[]),...((coord&&coord.hits)||[])];const earliest=all.length?all.reduce((x,y)=>y.time<x.time?y:x):null;
     h+=`<section class="card"><h3>Geprüfter Beitrag</h3><ul class="list">${nodeLi(post,false)}</ul><div class="meta">${fmtN(post.reposts)} Reposts · ${fmtN(post.likes)} Likes${post.quotes!=null?' · '+fmtN(post.quotes)+' Zitate':''}</div>`;
@@ -403,26 +560,51 @@ function renderReport({model,post,chain,coord,video,comments,manualUrl}){
     else h+=`<p class="hint">Kein Zitat und keine Antwort: der Beitrag steht für sich.</p>`;
     h+=`<h2>Gleiche Texte anderer Konten</h2>`;
     if(coord?.note)h+=`<p class="hint">${esc(coord.note)}</p>`;
-    else if(coord?.hits?.length){const accts=new Set(coord.hits.map(x=>x.author)).size;const span=(coord.hits[coord.hits.length-1].time-coord.hits[0].time)/36e5;
-      h+=`<p class="hint">${coord.hits.length} fast gleiche Beiträge von ${accts} Konten innerhalb von ${fmtN(span,1)} Stunden.${accts>=5&&span<24?' Viele Konten, gleicher Text, kurzes Zeitfenster: das ist das stärkste Zeichen für eine koordinierte Kampagne.':''}</p><ul class="list">${coord.hits.slice(0,15).map(n=>nodeLi(n,n===earliest)).join('')}</ul>`}
+    else if(coord?.hits?.length)h+=`<p class="hint">${esc(coordSig.detail)}${coordPts>=3?' Viele Konten, gleicher Text, kurzes Zeitfenster: das ist das stärkste Zeichen für eine koordinierte Kampagne.':''}</p><ul class="list">${coord.hits.slice(0,15).map(n=>nodeLi(n,n===earliest)).join('')}</ul>`;
     else h+=`<p class="hint">Keine fast gleichen Beiträge anderer Konten gefunden.</p>`;
+    if(sprAud)h+=verdict(sprAud.score,'Verbreiter-Stichprobe.')+audienceBlock(spread,sprAud);
     h+=`<h3>Herkunft weiter prüfen</h3>${provenanceLinks(post.url,post.text)}</section>`;
+    sections.push(['Verbreiter',sprAud?sprAud.signals:[]]);
   }
-  if(video){const ca=analyzeComments(comments.list);
+  if(video){
     h+=`<section class="card"><h3>Video</h3><h2>${esc(video.title)}</h2><div class="meta">${fmtDT(video.published)} · ${fmtN(video.views)} Aufrufe · ${fmtN(video.likes)} Likes · ${fmtN(video.comments)} Kommentare</div>`;
-    h+=`<h2>Kommentarspalte</h2>${comments.note?`<p class="hint">${esc(comments.note)}</p>`:verdict(ca.score,`Ausgewertet: ${comments.list.length} neueste Kommentare.`)+signalList(ca.signals)}`;
-    if(ca.groups?.length)h+=`<h3>Wortgleiche Kommentare</h3><ul class="list">${ca.groups.slice(0,5).map(g=>`<li><div class="meta">${g.length}× von ${new Set(g.map(c=>c.author)).size} Konten</div><p class="quote">${esc(g[0].text.slice(0,200))}</p></li>`).join('')}</ul>`;
+    h+=`<h2>Kommentarspalte</h2>${comments.note?`<p class="hint">${esc(comments.note)}</p>`:verdict(ca.score,`Ausgewertet: ${ca.n} Kommentare, davon ${ca.replies} Antworten.`)+signalList(ca.signals)}`;
+    if(ca?.scamThreads?.length)h+=`<h3>Verdächtige Gesprächsverläufe</h3><ul class="list">${ca.scamThreads.slice(0,3).map(t=>{const root=t.find(c=>!c.isReply)||t[0];const reps=t.filter(c=>c!==root).slice(0,5);return`<li class="scam">${commentLi(root)}<ul class="list sub">${reps.map(c=>`<li>${commentLi(c)}</li>`).join('')}</ul></li>`}).join('')}</ul>`;
+    if(ca?.groups?.length)h+=`<h3>Gleiche Kommentare</h3><ul class="list">${ca.groups.slice(0,5).map(g=>`<li><div class="meta">${g.length}× von ${new Set(g.map(c=>c.author)).size} Konten</div><p class="quote">${esc(g[0].text.slice(0,200))}</p></li>`).join('')}</ul>`;
     h+=`<h3>Herkunft weiter prüfen</h3>${provenanceLinks(video.url,video.title)}</section>`;
   }
-  h+=`<section class="card">${model.demo?'<div class="demo-flag">Beispieldaten · fiktives Konto</div>':''}<div class="acct"><h2>${esc(a.name||'Konto')}</h2><span class="h">${esc(model.platform)} · ${a.url?`<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.handle)}</a>`:esc(a.handle||'')}</span></div>
+  h+=`<section class="card"><div class="acct"><h2>${esc(a.name||'Konto')}</h2><span class="h">${esc(model.platform)} · ${a.url?`<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.handle)}</a>`:esc(a.handle||'')}</span></div>
   <dl class="facts"><div><dt>Kontoalter</dt><dd>${a.created?fmtAge((Date.now()-a.created)/864e5):'–'}</dd></div><div><dt>${model.platform==='YouTube'?'Videos':'Beiträge'}</dt><dd>${fmtN(a.posts)}</dd></div><div><dt>${model.platform==='YouTube'?'Abonnenten':'Follower'}</dt><dd>${fmtN(a.followers)}</dd></div>${a.following!=null?`<div><dt>Folgt</dt><dd>${fmtN(a.following)}</dd></div>`:''}<div><dt>Ausgewertet</dt><dd>${fmtN(model.items.length)}</dd></div></dl>
   ${verdict(an.score,`${an.evaluated} Signale geprüft. Je mehr Signale zusammenkommen, desto belastbarer.`)}${signalList(an.signals)}`;
   if(an.timedN>=10)h+=`<h3>Aktivität nach Tageszeit (deine Ortszeit)</h3><div class="chart">${histSVG(an.hist)}</div><p class="hint">Grau hinterlegt: Stunden ganz ohne Aktivität.</p>`;
   if(an.dupGroups.length)h+=`<h3>Häufigste Wiederholungen</h3><ul class="list">${an.dupGroups.slice(0,3).map(g=>`<li><div class="meta">${g.length}× gepostet</div><p class="quote">${esc(g[0].text.slice(0,200))}</p></li>`).join('')}</ul>`;
   if(an.doms.length)h+=`<h3>Verlinkte Seiten</h3><div class="links">${an.doms.slice(0,8).map(([d,c])=>`<span class="meta">${esc(d)} · ${c}</span>`).join('')}</div>`;
+  if(accAud)h+=verdict(accAud.score,'Follower-Stichprobe.')+audienceBlock(model.audience,accAud);
   if(!post&&!video)h+=`<h3>Herkunft weiter prüfen</h3>${provenanceLinks(manualUrl||a.url,(model.items.find(x=>x.text)||{}).text||'')}`;
   h+=`</section>`;
   $('#report').innerHTML=h;
+
+  lastReport={title:video?video.title:post?('Beitrag von '+post.author):(a.name||'Konto'),handle:a.handle,platform:model.platform,total,lvlT,parts,url:video?.url||post?.url||a.url||''};
+  $('#copy-rep').addEventListener('click',copyReport);
+  return{total,lvl,lvlT,title:lastReport.title};
+}
+function reportText(){const r=lastReport;let t=`ECHOLOT-BEFUND (${new Date().toLocaleString('de-DE')})\n${r.title} · ${r.platform}${r.url?'\n'+r.url:''}\n\nGesamt: ${r.lvlT.toUpperCase()} (${r.total} Verdachtspunkte)\n`;
+  r.parts.forEach(([name,score,sig])=>{t+=`\n${name} (${score} Punkte)\n`;sig.forEach(s=>{t+=`  [${s.state==='na'?'k. A.':s.state==='info'?'Hinweis':'+'+s.pts}] ${s.label}: ${s.detail}\n`})});
+  return t+'\nHinweis: Verdachtspunkte sind Hinweise, keine Beweise.';}
+async function copyReport(){const t=reportText();try{await navigator.clipboard.writeText(t);setStatus('Befund in die Zwischenablage kopiert.')}catch(e){$('#copy-fallback').innerHTML='<textarea class="copybox" id="copy-ta" readonly></textarea><p class="hint">Text markieren und kopieren.</p>';const ta=$('#copy-ta');ta.value=t;ta.focus();ta.select()}}
+
+/* ---------- Verlauf ---------- */
+const HKEY='echolot-history';
+const hLoad=()=>{try{return JSON.parse(store.get(HKEY)||'[]')}catch(e){return[]}};
+const hSave=l=>store.set(HKEY,JSON.stringify(l.slice(0,100)));
+function hAdd(entry){const l=hLoad();const prev=l.find(x=>x.input===entry.input);l.unshift({...entry,t:new Date().toISOString()});hSave(l);renderHistory();return prev}
+function renderHistory(){
+  const l=hLoad();const ul=$('#hist-list');
+  if(!l.length){ul.innerHTML='<li><span class="hint">Noch keine Prüfungen. Jede Link-Prüfung landet automatisch hier.</span></li>';$('#hist-actions').innerHTML='';return}
+  ul.innerHTML=l.map((x,i)=>`<li><div><div class="nm">${esc(x.title)}</div><div class="meta">${esc(x.platform)} · ${fmtDT(new Date(x.t))} · ${x.gone?'nicht mehr auffindbar':esc(x.lvlT)+' ('+x.total+' Punkte)'}</div></div><button class="btn ghost small" type="button" data-re="${i}">Erneut prüfen</button></li>`).join('');
+  ul.querySelectorAll('[data-re]').forEach(b=>b.addEventListener('click',()=>{const x=hLoad()[+b.dataset.re];$('#in-link').value=x.input;showTab('link');$('#f-link').requestSubmit()}));
+  $('#hist-actions').innerHTML='<button class="btn danger small" type="button" id="hist-clear">Verlauf löschen</button>';
+  $('#hist-clear').addEventListener('click',e=>{if(e.target.dataset.sure){hSave([]);renderHistory();setStatus('Verlauf gelöscht.')}else{e.target.dataset.sure='1';e.target.textContent='Wirklich löschen?'}});
 }
 
 /* ---------- Bildprüfung ---------- */
@@ -434,7 +616,7 @@ async function checkImage(file){
   const c2pa=/c2pa|jumb/i.test(head);
   add('Content Credentials (C2PA)',c2pa?'info':'na',c2pa?'Das Bild trägt einen Herkunftsnachweis. Lade es bei contentcredentials.org/verify hoch, dort siehst du Ersteller, Werkzeuge und Bearbeitungsschritte.':'Kein Herkunftsnachweis enthalten. Das ist normal, die meisten Plattformen entfernen solche Daten beim Hochladen.');
   const ai=head.match(/trainedAlgorithmicMedia|compositeWithTrainedAlgorithmicMedia/);
-  const gen=head.match(/Midjourney|DALL[·\-]?E|Stable Diffusion|Adobe Firefly|ComfyUI|NovelAI|Negative prompt|Imagen|GPT-4o|gpt-image/);
+  const gen=head.match(/Midjourney|DALL[·\-]?E|Stable Diffusion|Adobe Firefly|ComfyUI|NovelAI|Negative prompt|Imagen|GPT-4o|gpt-image|Flux|Leonardo\.ai|Ideogram/);
   if(ai||gen)S.push({label:'KI-Kennzeichnung',pts:3,state:'hit',detail:`In den Metadaten steht ein Hinweis auf KI-Erzeugung: „${(ai||gen)[0]}“.`});
   else add('KI-Kennzeichnung','ok','Keine KI-Kennzeichnung in den Metadaten. Fehlende Kennzeichnung beweist nicht, dass das Bild echt ist.');
   const cam=head.slice(0,65536).match(/(Canon|NIKON|SONY|Apple|samsung|FUJIFILM|OLYMPUS|Panasonic|GoPro|Google|Xiaomi|HUAWEI|LEICA|DJI)/);
@@ -445,40 +627,61 @@ async function checkImage(file){
   $('#report').innerHTML=`<section class="card"><h3>Bildprüfung</h3><h2>${esc(file.name)}</h2><img class="imgprev" src="${url}" alt="Geprüftes Bild">${signalList(S)}<h3>Ursprung suchen</h3><p class="hint">Rückwärtssuche zeigt, wo das Bild zuerst aufgetaucht ist. Lade es dort hoch:</p>${provenanceLinks(null,'')}</section>`;
 }
 
-/* ---------- Beispiel ---------- */
+/* ---------- Beispiele ---------- */
 function demoModel(){
   const now=Date.now(),items=[];
   const base=['Die Regierung verschweigt die wahren Zahlen! Teilt das, bevor es gelöscht wird: ','Unabhängige Experten bestätigen es endlich. Das wird uns verschwiegen, alle Infos hier: ','Warum berichtet niemand darüber? Hier stehen die ganzen Fakten: '];
-  for(let i=0;i<240;i++){const t=new Date(now-i*(18*6e4+(i%5)*4e4));const r=i%7===0;items.push({time:t,text:r?'':base[i%3]+'https://wahrheit-jetzt.example/'+(i%9),kind:r?'repost':'post',domains:r?[]:['wahrheit-jetzt.example']})}
-  return{platform:'Bluesky',demo:true,account:{name:'Nachrichten Aktuell 24',handle:'@nachrichten-aktuell-24.example',url:null,created:new Date(now-12*864e5),followers:38,following:2140,posts:9120,hasAvatar:false,hasBio:false,botFlag:false},items};
+  for(let i=0;i<240;i++){const t=new Date(now-i*(18*6e4+(i%5)*4e4));const r=i%7===0;items.push({time:t,text:r?'':base[i%3]+'https://bit.ly/x'+(i%9),kind:r?'repost':'post',domains:r?[]:['bit.ly']})}
+  const fl=[];const day=new Date(now-9*864e5);
+  for(let i=0;i<100;i++){const c=i<38?new Date(+day+i*6e4):new Date(now-(30+i*41)*864e5);fl.push({handle:i<38?'patriot'+(48210+i*7):'nutzer'+i,created:c,avatar:i>=45,bio:i>=50})}
+  return{platform:'Bluesky',demo:true,account:{name:'Nachrichten Aktuell 24',handle:'@nachrichten-aktuell-24.example',url:null,created:new Date(now-12*864e5),followers:381,following:2140,posts:9120,hasAvatar:false,hasBio:false,botFlag:false},items,audience:{label:'Neueste Follower',list:fl}};
+}
+function demoYT(){
+  const now=Date.now(),list=[];let th=0;const ago=h=>new Date(now-h*36e5);
+  const normal=['Super erklärt, danke!','Bei Minute 4 hätte ich mir mehr Details gewünscht.','Wie siehst du die Entwicklung im nächsten Jahr?','Endlich mal jemand, der es verständlich macht.','Ich bin skeptisch, die Zahlen von 2022 sahen anders aus.','Gutes Video, aber der Ton ist etwas leise.','Kannst du mal ein Video über ETFs machen?','Danke für die ehrliche Einschätzung.','Die Grafik bei 7:30 ist super hilfreich.','Ich halte seit 2019 und schlafe trotzdem ruhig.','Was hältst du von Gold als Absicherung?','Zu reißerischer Titel, aber guter Inhalt.','Wie hoch sind eigentlich die Gebühren bei deinem Broker?','Bitte mehr Videos zu Steuern!','Ich finde die Prognose zu optimistisch.','Grüße aus Leipzig, schaue jede Folge.'];
+  normal.forEach((t,i)=>list.push({author:'@'+['anna','tom','lena','ben','kai','mia','jan','eva'][i%8]+['.k','_m','r','.s'][i%4]+'leipzig',authorId:'n'+i,text:t,time:ago(70-i*3),thread:'t'+(th++),isReply:false,authorCreated:new Date(now-(400+i*30)*864e5)}));
+  const scam=[['Ich habe mit 5.000 € angefangen und dank Frau Helga Brandt jetzt 48.000 € Gewinn. Sie ist eine unglaubliche Finanzberaterin!',[['Frau Helga Brandt hat mir auch geholfen, mein Portfolio ist um 300 % gewachsen.'],['Stimmt, ich verdiene jede Woche über 6.000 € mit ihrer Strategie.'],['Wie kann ich sie erreichen?'],['Sie ist auf WhatsApp erreichbar: +49 151 2345 6789']]],
+    ['Krypto ist die Zukunft, ich habe dank meines Mentors Frau Helga Brandt 30.000 € verdient.',[['Ja, Frau Helga Brandt ist die Beste, ich habe meine Schulden mit ihren Trades bezahlt.'],['Schreib ihr auf Telegram, sie antwortet schnell.']]]];
+  scam.forEach(([root,reps],k)=>{const tid='s'+k;list.push({author:'@user-q8x'+k+'p2m',authorId:'s'+k,text:root,time:ago(20-k),thread:tid,isReply:false,authorCreated:new Date(now-6*864e5)});reps.forEach(([t],j)=>list.push({author:'@user-'+['k3j9x2','m7p2q1','x9z8w7','b4n5m6'][j]+k,authorId:'r'+k+j,text:t,time:new Date(+ago(20-k)+(j+1)*9e4),thread:tid,isReply:true,authorCreated:new Date(now-(3+j)*864e5)}))});
+  for(let i=0;i<6;i++)list.push({author:'@user-dup'+i+'xq7',authorId:'d'+i,text:'Wer will auch 10.000 € im Monat verdienen? Schau in mein Profil!',time:ago(5-i*.02),thread:'d'+i,isReply:false,authorCreated:new Date(now-2*864e5)});
+  const model={platform:'YouTube',demo:true,account:{name:'Finanz Insider Täglich',handle:'@finanzinsidertaeglich',url:null,created:new Date(now-200*864e5),followers:184000,following:null,posts:412,hasAvatar:true,hasBio:true,botFlag:false},items:Array.from({length:60},(_,i)=>({time:new Date(now-i*8*36e5),text:'Börse heute Folge '+i,kind:'post',domains:[]}))};
+  return{model,video:{title:'Bitcoin explodiert? Meine Prognose für 2027',published:ago(72),views:212000,likes:9100,comments:list.length,url:''},comments:{list,note:''}};
 }
 
 /* ---------- Steuerung ---------- */
 function setStatus(msg,err){const s=$('#status');s.textContent=msg||'';s.className=err?'err':''}
-function showTab(t){document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));['link','manual','image','settings'].forEach(x=>$('#p-'+x).hidden=x!==t)}
+function showTab(t){document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));['link','manual','image','history','settings'].forEach(x=>$('#p-'+x).hidden=x!==t)}
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
 
-function handleErr(e){
-  if(e instanceof Blocked)setStatus('Die Verbindung wurde blockiert. In der Claude-Vorschau sind fremde Server gesperrt. Lade die Datei auf GitHub Pages hoch oder öffne sie lokal im Browser, dann fragt Echolot Bluesky, Mastodon und YouTube direkt ab. Bis dahin zeigt „Beispiel ansehen“, wie ein Befund aussieht.',true);
-  else if(e instanceof NeedKey){showTab('settings');setStatus('Für YouTube brauchst du einen kostenlosen API-Schlüssel. Trag ihn hier ein und prüfe dann erneut.',true)}
-  else if(e.status===400||e.status===404)setStatus('Nicht gefunden. Stimmt der Link oder das Handle? ('+e.message+')',true);
+function handleErr(e,input){
+  if(e instanceof Blocked)setStatus('Die Verbindung wurde blockiert oder ist abgebrochen. Prüf deine Internetverbindung und versuch es erneut.',true);
+  else if(e instanceof NeedKey){showTab('settings');setStatus('Für YouTube brauchst du einen kostenlosen API-Schlüssel. Trag ihn hier oder in config.js ein.',true)}
+  else if(e.status===400||e.status===404){
+    const prev=hLoad().find(x=>x.input===input&&!x.gone);
+    if(prev){hAdd({input,title:prev.title,platform:prev.platform,gone:true});setStatus(`Nicht mehr auffindbar. Am ${fmtDT(new Date(prev.t))} war das Konto noch da (${prev.lvlT}). Es wurde vermutlich gesperrt, gelöscht oder umbenannt.`,true)}
+    else setStatus('Nicht gefunden. Stimmt der Link oder das Handle? ('+e.message+')',true)}
+  else if(e.status===403)setStatus('Zugriff verweigert ('+e.message+'). Bei YouTube: Prüf, ob der Schlüssel für diese Website freigegeben ist und das Tageskontingent reicht.',true);
   else setStatus('Abfrage fehlgeschlagen: '+e.message,true);
 }
 
 $('#f-link').addEventListener('submit',async ev=>{
-  ev.preventDefault();const v=$('#in-link').value;const d=detect(v);
-  if(!v.trim())return setStatus('Füge einen Link oder ein Handle ein.',true);
+  ev.preventDefault();const v=$('#in-link').value.trim();const d=detect(v);const deep=$('#opt-deep').checked;
+  if(!v)return setStatus('Füge einen Link oder ein Handle ein.',true);
   if(!d)return setStatus('Plattform nicht erkannt. Für X, TikTok, Instagram & Co. nutze den manuellen Modus.',true);
-  if(d.p==='manual'){showTab('manual');$('#m-plat').value=d.name;$('#m-url').value=d.url;return setStatus(d.name+' bietet keine offene Schnittstelle. Trag die Profildaten und ein paar Beiträge ein.')}
+  if(d.p==='manual'){showTab('manual');$('#m-plat').value=d.name;$('#m-url').value=d.url;return setStatus(d.name+' bietet keine offene Schnittstelle. Trag die Profildaten und ein paar Beiträge oder Kommentare ein.')}
   setStatus('Lote aus …');$('#report').innerHTML='';
   try{
-    if(d.p==='bluesky')renderReport(d.kind==='post'?await bskyPost(d.actor,d.rkey):{model:await bskyAccount(d.actor)});
-    else if(d.p==='mastodon')renderReport(d.status?await mastoPost(d.host,d.user,d.status):{model:await mastoAccount(d.host,d.user)});
-    else if(d.p==='youtube')renderReport(d.kind==='video'?await ytVideo(d.id):{model:await ytChannel(d.sel)});
-    setStatus('');
-  }catch(e){handleErr(e)}
+    let data;
+    if(d.p==='bluesky')data=d.kind==='post'?await bskyPost(d.actor,d.rkey,deep):{model:await bskyAccount(d.actor,deep)};
+    else if(d.p==='mastodon')data=d.status?await mastoPost(d.host,d.user,d.status,deep):{model:await mastoAccount(d.host,d.user,deep)};
+    else data=d.kind==='video'?await ytVideo(d.id,deep):{model:await ytChannel(d.sel)};
+    const res=renderReport(data);
+    const prev=hAdd({input:v,title:res.title,platform:data.model.platform,total:res.total,lvlT:res.lvlT});
+    setStatus(prev&&!prev.gone?`Letzte Prüfung am ${fmtDT(new Date(prev.t))}: ${prev.total} Punkte, jetzt ${res.total}.`:'');
+  }catch(e){handleErr(e,v)}
 });
 $('#demo').addEventListener('click',()=>{setStatus('');renderReport({model:demoModel()})});
+$('#demo-yt').addEventListener('click',()=>{setStatus('');renderReport(demoYT())});
 
 $('#f-manual').addEventListener('submit',ev=>{
   ev.preventDefault();
@@ -500,11 +703,11 @@ $('#f-manual').addEventListener('submit',ev=>{
 
 $('#in-img').addEventListener('change',e=>{const f=e.target.files[0];if(f){setStatus('');checkImage(f).catch(err=>setStatus('Bild konnte nicht gelesen werden: '+err.message,true))}});
 $('#yt-key').value=store.get('yt-key')||'';
-if(YT_KEY_DEFAULT){$('#yt-key').placeholder='Fester Schlüssel aus der Datei ist aktiv';document.querySelector('.chips .chip:nth-child(3)').textContent='YouTube live'}
+if(typeof YT_KEY_DEFAULT==='string'&&YT_KEY_DEFAULT.trim()){$('#yt-key').placeholder='Fester Schlüssel aus config.js ist aktiv';$('#yt-chip').textContent='YouTube live'}
 $('#save-key').addEventListener('click',()=>{store.set('yt-key',$('#yt-key').value.trim());showTab('link');setStatus('Schlüssel gespeichert. Jetzt ein YouTube-Video oder einen Kanal prüfen.')});
 
+renderHistory();
 renderReport({model:demoModel()});
 </script>
-
 </body>
 </html>
