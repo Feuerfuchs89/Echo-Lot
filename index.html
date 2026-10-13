@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Echolot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+/* Layout: eine Arbeitsspalte – Eingabe oben, Befund darunter wie ein Peilprotokoll */
+:root{
+  --bg:#edf1f2; --surface:#ffffff; --sunk:#e3e9eb; --fg:#10232b; --muted:#566b73; --line:#cdd8db;
+  --accent:#0b6874; --accent-fg:#ffffff;
+  --ok:#2c7a4b; --warn:#a86a12; --crit:#b0372a; --info:#4a5f9c;
+  --display:"Archivo",system-ui,sans-serif; --body:"Archivo",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b181d; --surface:#11242b; --sunk:#0e1e24; --fg:#e2ebed; --muted:#8ea2a9; --line:#22404a;
+  --accent:#4cb2be; --accent-fg:#06161a; --ok:#69bd88; --warn:#e2a64b; --crit:#e6745f; --info:#93a6e6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b181d; --surface:#11242b; --sunk:#0e1e24; --fg:#e2ebed; --muted:#8ea2a9; --line:#22404a;
+  --accent:#4cb2be; --accent-fg:#06161a; --ok:#69bd88; --warn:#e2a64b; --crit:#e6745f; --info:#93a6e6; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;font-stretch:100%}
+.wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-direction:column;gap:4px}
+h1{font-family:var(--display);font-stretch:75%;font-weight:800;font-size:2.4rem;letter-spacing:.01em;margin:0;line-height:1;text-transform:uppercase}
+h1 span{color:var(--accent)}
+.lede{color:var(--muted);margin:0;max-width:62ch}
+h2{font-family:var(--display);font-stretch:85%;font-weight:700;font-size:1.15rem;margin:0;text-wrap:balance}
+h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0;font-weight:600}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tabs button{appearance:none;border:0;background:none;color:var(--muted);font:inherit;font-weight:600;padding:8px 12px;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--accent)}
+.panel{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>input{flex:1 1 260px;min-width:0}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 11px;width:100%}
+textarea{min-height:110px;resize:vertical;font-family:var(--mono);font-size:.85rem}
+.row>input,.row>select{width:auto}
+label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.btn{appearance:none;font:inherit;font-weight:700;border-radius:6px;padding:9px 16px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-fg)}
+.btn.ghost{background:transparent;color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.85rem;color:var(--muted);margin:0}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.75rem;font-family:var(--mono);padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.chip.live{border-color:var(--accent);color:var(--accent)}
+#status:empty{display:none}
+#status{padding:10px 12px;border-radius:6px;background:var(--sunk);border-left:3px solid var(--accent);font-size:.9rem}
+#status.err{border-color:var(--crit)}
+.report{display:flex;flex-direction:column;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.demo-flag{font-family:var(--mono);font-size:.75rem;color:var(--warn);text-transform:uppercase;letter-spacing:.08em}
+.acct{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.acct .h{font-family:var(--mono);color:var(--muted);font-size:.85rem;word-break:break-all}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px 16px}
+.facts div{display:flex;flex-direction:column}
+.facts dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.facts dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1rem}
+.verdict{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.verdict .lvl{font-family:var(--display);font-stretch:75%;font-weight:800;font-size:1.6rem;text-transform:uppercase;line-height:1}
+.lvl.l0{color:var(--ok)}.lvl.l1{color:var(--warn)}.lvl.l2{color:var(--crit)}
+.meter{flex:1 1 220px;display:flex;flex-direction:column;gap:4px}
+.bar{position:relative;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--ok) 0 25%,var(--warn) 25% 50%,var(--crit) 50% 100%);opacity:.85}
+.bar i{position:absolute;top:-4px;width:4px;height:18px;border-radius:2px;background:var(--fg);transform:translateX(-50%)}
+.scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.signals{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.signals li{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.signals li:first-child{border-top:0}
+.pill{font-family:var(--mono);font-size:.72rem;padding:2px 8px;border-radius:99px;white-space:nowrap;align-self:start;border:1px solid currentColor;font-variant-numeric:tabular-nums}
+.pill.hit{color:var(--crit)}.pill.soft{color:var(--warn)}.pill.ok{color:var(--ok)}.pill.na{color:var(--muted)}.pill.info{color:var(--info)}
+.signals b{font-weight:700}
+.signals p{margin:0;color:var(--muted);font-size:.9rem;grid-column:2}
+.chart{overflow-x:auto}
+.chart svg{display:block;width:100%;min-width:320px;height:auto}
+.chart text{fill:var(--muted);font-family:var(--mono);font-size:10px}
+.chart .b{fill:var(--accent)}
+.chart .z{fill:var(--sunk)}
+.chart .ax{stroke:var(--line)}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.list li{border-left:2px solid var(--line);padding:2px 0 2px 10px;min-width:0}
+.list li.origin{border-color:var(--accent)}
+.meta{font-family:var(--mono);font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;word-break:break-all}
+.quote{margin:2px 0 0;font-size:.92rem;overflow-wrap:anywhere}
+a{color:var(--accent)}
+.links{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.9rem}
+.imgprev{max-width:100%;max-height:260px;border-radius:6px;border:1px solid var(--line);align-self:flex-start}
+footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px}
+footer p{margin:0;max-width:70ch}
+@media (prefers-reduced-motion:no-preference){.report>.card{animation:in .25s ease-out both}}
+@keyframes in{from{transform:translateY(4px)}to{transform:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Echo<span>lot</span></h1>
+    <p class="lede">Lotet Social-Media-Konten und Beiträge aus: Verhaltensmuster, koordinierte Verbreitung und Herkunft. Ergebnis ist ein begründeter Verdacht, kein Urteil.</p>
+    <div class="chips"><span class="chip live">Bluesky live</span><span class="chip live">Mastodon live</span><span class="chip live">YouTube live (API-Schlüssel)</span><span class="chip">X · TikTok · Instagram · Facebook · Telegram: manuell</span></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="link" id="t-link">Link prüfen</button>
+    <button role="tab" aria-selected="false" data-tab="manual" id="t-manual">Manuell</button>
+    <button role="tab" aria-selected="false" data-tab="image" id="t-image">Bild</button>
+    <button role="tab" aria-selected="false" data-tab="settings" id="t-settings">Einstellungen</button>
+  </nav>
+
+  <section class="panel" id="p-link">
+    <form class="row" id="f-link">
+      <input id="in-link" placeholder="Link zu Beitrag, Konto oder Video – oder @name.bsky.social / @name@instanz" autocomplete="off">
+      <button class="btn" type="submit">Ausloten</button>
+      <button class="btn ghost" type="button" id="demo">Beispiel ansehen</button>
+    </form>
+    <p class="hint">Bluesky-Beitrag: Verbreitungsweg zurück bis zum Ursprung plus Suche nach fast gleichen Texten anderer Konten. YouTube-Video: Kanal plus Kommentar-Analyse. Andere Plattformen öffnen den manuellen Modus.</p>
+  </section>
+
+  <section class="panel" id="p-manual" hidden>
+    <p class="hint">Für Plattformen ohne offene Schnittstelle. Trage ein, was im Profil steht, und kopiere ein paar Beiträge hinein. Je mehr Daten, desto aussagekräftiger.</p>
+    <form class="panel" id="f-manual">
+      <div class="grid">
+        <label>Plattform<select id="m-plat"><option>X</option><option>TikTok</option><option>Instagram</option><option>Facebook</option><option>Telegram</option><option>Threads</option><option>Reddit</option><option>LinkedIn</option><option>Andere</option></select></label>
+        <label>Name / Handle<input id="m-name" placeholder="@konto"></label>
+        <label>Konto erstellt<input id="m-created" type="date"></label>
+        <label>Beiträge gesamt<input id="m-posts" type="number" min="0" inputmode="numeric"></label>
+        <label>Follower<input id="m-followers" type="number" min="0" inputmode="numeric"></label>
+        <label>Folgt selbst<input id="m-following" type="number" min="0" inputmode="numeric"></label>
+        <label>Profilbild<select id="m-avatar"><option value="1">vorhanden</option><option value="0">keins / Standardbild</option></select></label>
+        <label>Profiltext<select id="m-bio"><option value="1">vorhanden</option><option value="0">leer</option></select></label>
+      </div>
+      <label>Beiträge (durch Leerzeile getrennt)<textarea id="m-texts" placeholder="Beitrag 1 …&#10;&#10;Beitrag 2 …"></textarea></label>
+      <label>Zeitstempel (einer pro Zeile, z. B. 2026-10-12 03:14 oder nur 03:14)<textarea id="m-times" placeholder="2026-10-12 03:14&#10;2026-10-12 03:34"></textarea></label>
+      <label>Link zum Beitrag (optional, für Herkunftssuche)<input id="m-url" placeholder="https://…"></label>
+      <div class="row"><button class="btn" type="submit">Auswerten</button></div>
+    </form>
+  </section>
+
+  <section class="panel" id="p-image" hidden>
+    <p class="hint">Prüft ein Bild auf Herkunftsnachweise (Content Credentials / C2PA), KI-Kennzeichnungen in den Metadaten und Kamera-Daten. Das Bild bleibt auf deinem Gerät.</p>
+    <label>Bilddatei<input type="file" id="in-img" accept="image/*"></label>
+  </section>
+
+  <section class="panel" id="p-settings" hidden>
+    <label>YouTube-API-Schlüssel<input id="yt-key" placeholder="AIza…" autocomplete="off"></label>
+    <p class="hint">Kostenlos in der Google Cloud Console: Projekt anlegen, „YouTube Data API v3“ aktivieren, unter Anmeldedaten einen API-Schlüssel erstellen. Der Schlüssel bleibt nur in diesem Browser gespeichert.</p>
+    <div class="row"><button class="btn" type="button" id="save-key">Speichern</button></div>
+  </section>
+
+  <div id="status" role="status"></div>
+  <main class="report" id="report"></main>
+
+  <footer>
+    <p><b>Grenzen.</b> Kein Signal beweist einen Bot. Nachtschichtler, Redaktionen und Fans posten auch viel und regelmäßig. Echolot zeigt Auffälligkeiten mit Begründung, die Bewertung bleibt bei dir.</p>
+    <p>Reine KI-Texterkennung ist unzuverlässig und wird deshalb nur bei eindeutigen Spuren gewertet, etwa versehentlich mitkopierten Chatbot-Antworten. Echolot verfolgt Inhalte und Netzwerke, keine Personen hinter Konten.</p>
+  </footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const fmtN=(n,d=0)=>n==null||isNaN(n)?'–':Number(n).toLocaleString('de-DE',{maximumFractionDigits:d,minimumFractionDigits:d});
+const fmtDate=d=>d?d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}):'–';
+const fmtDT=d=>d?d.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'–';
+function fmtAge(days){if(days<1)return 'weniger als 1 Tag';if(days<60)return Math.round(days)+' Tage';if(days<730)return Math.round(days/30.4)+' Monate';return fmtN(days/365.25,1)+' Jahre'}
+const domainOf=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return null}};
+const clean=t=>(t||'').toLowerCase().replace(/https?:\/\/\S+/g,' ').replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();
+const jacc=(a,b)=>{let i=0;a.forEach(x=>b.has(x)&&i++);return i/(a.size+b.size-i||1)};
+
+/* ---------- Netz ---------- */
+class Blocked extends Error{}
+class NeedKey extends Error{}
+async function getJSON(url){
+  const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),15000);let r;
+  try{r=await fetch(url,{signal:ctl.signal})}catch(e){throw new Blocked(url)}finally{clearTimeout(t)}
+  if(!r.ok){let msg='';try{const j=await r.json();msg=j.message||j.error?.message||j.error||''}catch(e){}const err=new Error('HTTP '+r.status+(msg?': '+msg:''));err.status=r.status;throw err}
+  return r.json();
+}
+
+/* ---------- Plattform erkennen ---------- */
+function detect(input){
+  const s=input.trim();let m;
+  if(m=s.match(/bsky\.app\/profile\/([^/\s]+)\/post\/([^/?\s]+)/))return{p:'bluesky',kind:'post',actor:m[1],rkey:m[2]};
+  if(m=s.match(/bsky\.app\/profile\/([^/?\s]+)/))return{p:'bluesky',kind:'account',actor:m[1]};
+  if(m=s.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/))return{p:'youtube',kind:'video',id:m[1]};
+  if(m=s.match(/youtube\.com\/(@[\w.\-]+)/))return{p:'youtube',kind:'channel',sel:{forHandle:m[1]}};
+  if(m=s.match(/youtube\.com\/channel\/(UC[\w-]{22})/))return{p:'youtube',kind:'channel',sel:{id:m[1]}};
+  const other=[['//x.com','X'],['twitter.com','X'],['tiktok.com','TikTok'],['instagram.com','Instagram'],['facebook.com','Facebook'],['fb.com','Facebook'],['t.me/','Telegram'],['threads.net','Threads'],['threads.com','Threads'],['linkedin.com','LinkedIn'],['reddit.com','Reddit']];
+  for(const[d,n]of other)if(s.includes(d))return{p:'manual',name:n,url:s};
+  if(m=s.match(/^https?:\/\/([^/]+)\/@([\w.]+)(?:\/(\d+))?/))return{p:'mastodon',host:m[1],user:m[2],status:m[3]};
+  if(m=s.match(/^@?([\w.]+)@([\w.-]+\.[a-z]{2,})$/i))return{p:'mastodon',host:m[2],user:m[1]};
+  if(m=s.match(/^@?([\w-]+(?:\.[\w-]+)+)$/))return{p:'bluesky',kind:'account',actor:m[1]};
+  return null;
+}
+
+/* ---------- Bluesky ---------- */
+const BSKY='https://public.api.bsky.app/xrpc/';
+const bq=(m,p)=>getJSON(BSKY+m+'?'+new URLSearchParams(p));
+async function bskyDid(a){if(a.startsWith('did:'))return a;return(await bq('com.atproto.identity.resolveHandle',{handle:a})).did}
+function bskyDomains(post){
+  const out=[];const r=post.record||{};
+  (r.text?.match(/https?:\/\/\S+/g)||[]).forEach(u=>out.push(u));
+  (r.facets||[]).forEach(f=>(f.features||[]).forEach(x=>x.uri&&out.push(x.uri)));
+  const ex=post.embed?.external?.uri||r.embed?.external?.uri;if(ex)out.push(ex);
+  return[...new Set(out.map(domainOf).filter(Boolean))];
+}
+const rkeyOf=uri=>uri.split('/').pop();
+const nodeB=(p,rel)=>({rel,name:p.author?.displayName||p.author?.handle,author:'@'+(p.author?.handle||'?'),time:new Date(p.record?.createdAt||p.indexedAt),text:p.record?.text||'',url:'https://bsky.app/profile/'+(p.author?.handle||p.author?.did)+'/post/'+rkeyOf(p.uri)});
+function quoteUri(p){const e=p.record?.embed;if(!e)return null;if(e.$type==='app.bsky.embed.record')return e.record?.uri;if(e.$type==='app.bsky.embed.recordWithMedia')return e.record?.record?.uri;return null}
+async function bskyAccount(actor){
+  const prof=await bq('app.bsky.actor.getProfile',{actor});
+  const items=[];let cursor;
+  for(let i=0;i<3;i++){
+    const p={actor,limit:100,filter:'posts_with_replies'};if(cursor)p.cursor=cursor;
+    const f=await bq('app.bsky.feed.getAuthorFeed',p);
+    for(const it of f.feed){
+      const rp=(it.reason?.$type||'').includes('reasonRepost');
+      items.push({time:new Date(rp?it.reason.indexedAt:(it.post.record?.createdAt||it.post.indexedAt)),text:rp?'':(it.post.record?.text||''),kind:rp?'repost':(it.post.record?.reply?'reply':'post'),domains:rp?[]:bskyDomains(it.post)});
+    }
+    cursor=f.cursor;if(!cursor||!f.feed.length)break;
+  }
+  return{platform:'Bluesky',account:{name:prof.displayName||prof.handle,handle:'@'+prof.handle,url:'https://bsky.app/profile/'+prof.handle,created:prof.createdAt?new Date(prof.createdAt):null,followers:prof.followersCount,following:prof.followsCount,posts:prof.postsCount,hasAvatar:!!prof.avatar,hasBio:!!(prof.description||'').trim(),botFlag:(prof.labels||[]).some(l=>/bot/i.test(l.val))},items};
+}
+async function bskyCoord(text,selfUri){
+  const words=clean(text).split(' ').filter(w=>w.length>2);
+  if(words.length<5)return{note:'Der Text ist zu kurz für einen Abgleich mit anderen Konten.'};
+  let r;try{r=await bq('app.bsky.feed.searchPosts',{q:words.slice(0,10).join(' '),limit:50,sort:'latest'})}
+  catch(e){return{note:'Die Bluesky-Suche hat nicht geantwortet ('+e.message+'). Sie verlangt teils eine Anmeldung; das ist der nächste Ausbauschritt.'}}
+  const base=new Set(words);
+  const hits=(r.posts||[]).filter(p=>p.uri!==selfUri).map(p=>({...nodeB(p,''),sim:jacc(base,new Set(clean(p.record?.text).split(' ').filter(w=>w.length>2)))})).filter(h=>h.sim>=.5).sort((a,b)=>a.time-b.time);
+  return{hits};
+}
+async function bskyPost(actor,rkey){
+  const did=await bskyDid(actor);
+  const uri=`at://${did}/app.bsky.feed.post/${rkey}`;
+  const th=await bq('app.bsky.feed.getPostThread',{uri,depth:0,parentHeight:20});
+  const post=th.thread.post;
+  const chain=[];
+  let p=th.thread.parent;while(p&&p.post){chain.push(nodeB(p.post,'Antwort auf'));p=p.parent}
+  let q=quoteUri(post),g=0;
+  while(q&&g++<6){const r=await bq('app.bsky.feed.getPosts',{uris:q});const qp=r.posts?.[0];if(!qp)break;chain.push(nodeB(qp,'zitiert'));q=quoteUri(qp)}
+  const coord=await bskyCoord(post.record?.text,post.uri);
+  const model=await bskyAccount(did);
+  return{model,post:{...nodeB(post,'Geprüfter Beitrag'),reposts:post.repostCount,likes:post.likeCount,quotes:post.quoteCount},chain,coord};
+}
+
+/* ---------- Mastodon ---------- */
+function htmlInfo(h){const d=new DOMParser().parseFromString(h||'','text/html');const links=[...d.querySelectorAll('a[href]')].filter(a=>!a.classList.contains('mention')&&!a.classList.contains('hashtag')&&!/\/tags\//.test(a.href)).map(a=>domainOf(a.href)).filter(Boolean);return{text:(d.body.textContent||'').trim(),links}}
+async function mastoAccount(host,user){
+  const a=await getJSON(`https://${host}/api/v1/accounts/lookup?acct=${encodeURIComponent(user)}`);
+  const items=[];let max;
+  for(let i=0;i<3;i++){
+    const ps=new URLSearchParams({limit:40});if(max)ps.set('max_id',max);
+    const st=await getJSON(`https://${host}/api/v1/accounts/${a.id}/statuses?`+ps);if(!st.length)break;
+    st.forEach(s=>{const rb=!!s.reblog;const h=rb?{text:'',links:[]}:htmlInfo(s.content);items.push({time:new Date(s.created_at),text:h.text,kind:rb?'repost':(s.in_reply_to_id?'reply':'post'),domains:[...new Set(h.links.concat(s.card?.url?[domainOf(s.card.url)]:[]))].filter(Boolean)})});
+    max=st[st.length-1].id;
+  }
+  return{platform:'Mastodon',account:{name:a.display_name||a.username,handle:'@'+a.acct+(a.acct.includes('@')?'':'@'+host),url:a.url,created:new Date(a.created_at),followers:a.followers_count,following:a.following_count,posts:a.statuses_count,hasAvatar:!/missing/.test(a.avatar||''),hasBio:!!htmlInfo(a.note).text,botFlag:!!a.bot},items};
+}
+async function mastoPost(host,user,id){
+  const s=await getJSON(`https://${host}/api/v1/statuses/${id}`);
+  const nodeM=(x,rel)=>({rel,name:x.account.display_name||x.account.username,author:'@'+x.account.acct,time:new Date(x.created_at),text:htmlInfo(x.content).text,url:x.url||x.uri});
+  const chain=[];
+  if(s.reblog)chain.push(nodeM(s.reblog,'teilt'));
+  if(s.in_reply_to_id){try{const c=await getJSON(`https://${host}/api/v1/statuses/${id}/context`);c.ancestors.slice().reverse().forEach(x=>chain.push(nodeM(x,'Antwort auf')))}catch(e){}}
+  const model=await mastoAccount(host,user);
+  return{model,post:{...nodeM(s,'Geprüfter Beitrag'),reposts:s.reblogs_count,likes:s.favourites_count},chain,coord:{note:'Volltextsuche nach gleichen Texten ist bei Mastodon nur angemeldet möglich.'}};
+}
+
+/* ---------- YouTube ---------- */
+const YT='https://www.googleapis.com/youtube/v3/';
+async function yq(m,p){const key=store.get('yt-key')||$('#yt-key').value.trim();if(!key)throw new NeedKey();return getJSON(YT+m+'?'+new URLSearchParams({...p,key}))}
+async function ytChannel(sel){
+  const c=(await yq('channels',{part:'snippet,statistics,contentDetails',...sel})).items?.[0];
+  if(!c)throw new Error('Kanal nicht gefunden.');
+  const items=[];let tok;
+  for(let i=0;i<2;i++){const p={part:'snippet,contentDetails',playlistId:c.contentDetails.relatedPlaylists.uploads,maxResults:50};if(tok)p.pageToken=tok;let pl;try{pl=await yq('playlistItems',p)}catch(e){break}
+    pl.items.forEach(it=>items.push({time:new Date(it.contentDetails.videoPublishedAt||it.snippet.publishedAt),text:it.snippet.title,kind:'post',domains:[]}));tok=pl.nextPageToken;if(!tok)break}
+  return{platform:'YouTube',account:{name:c.snippet.title,handle:c.snippet.customUrl||c.id,url:'https://www.youtube.com/'+(c.snippet.customUrl||'channel/'+c.id),created:new Date(c.snippet.publishedAt),followers:c.statistics.hiddenSubscriberCount?null:+c.statistics.subscriberCount,following:null,posts:+c.statistics.videoCount,hasAvatar:true,hasBio:!!(c.snippet.description||'').trim(),botFlag:false},items};
+}
+async function ytVideo(id){
+  const v=(await yq('videos',{part:'snippet,statistics',id})).items?.[0];if(!v)throw new Error('Video nicht gefunden.');
+  const list=[];let tok,note='';
+  for(let i=0;i<3;i++){const p={part:'snippet',videoId:id,maxResults:100,order:'time',textFormat:'plainText'};if(tok)p.pageToken=tok;let r;
+    try{r=await yq('commentThreads',p)}catch(e){if(!i)note='Kommentare nicht abrufbar ('+e.message+').';break}
+    r.items.forEach(t=>{const s=t.snippet.topLevelComment.snippet;list.push({author:s.authorDisplayName,authorId:s.authorChannelId?.value,text:s.textOriginal||s.textDisplay||'',time:new Date(s.publishedAt)})});tok=r.nextPageToken;if(!tok)break}
+  const ids=[...new Set(list.map(c=>c.authorId).filter(Boolean))].slice(0,200);const ages={};
+  for(let i=0;i<ids.length;i+=50){try{(await yq('channels',{part:'snippet',id:ids.slice(i,i+50).join(',')})).items.forEach(c=>ages[c.id]=new Date(c.snippet.publishedAt))}catch(e){break}}
+  list.forEach(c=>c.authorCreated=ages[c.authorId]||null);
+  const model=await ytChannel({id:v.snippet.channelId});
+  return{model,video:{title:v.snippet.title,published:new Date(v.snippet.publishedAt),views:+v.statistics.viewCount,likes:+(v.statistics.likeCount||0),comments:+(v.statistics.commentCount||0),url:'https://www.youtube.com/watch?v='+id},comments:{list,note}};
+}
+
+/* ---------- Auswertung ---------- */
+const STRONG_AI=/as an ai language model|as an ai developed|als (ein )?ki-sprachmodell|als künstliche intelligenz kann ich|i cannot fulfill (this|that) request|ich kann (diese|dieser) anfrage nicht|as of my last (knowledge )?(update|cutoff)|stand meines wissens(stands)? \d{4}|regenerate response|i'?m sorry,? but i can'?t (help|assist)/i;
+const WEAK_AI=/\bdelve\b|\btapestry\b|in today'?s fast-paced|es ist wichtig zu beachten|zusammenfassend lässt sich sagen|in der heutigen schnelllebigen|eintauchen in die welt/i;
+function longestZeroRun(h){let best=0,cur=0;for(let i=0;i<48;i++){if(h[i%24]===0){cur++;best=Math.max(best,cur)}else cur=0}return Math.min(best,24)}
+function maxInWindow(times,ms){let best=0,j=0;for(let i=0;i<times.length;i++){while(times[i]-times[j]>ms)j++;best=Math.max(best,i-j+1)}return best}
+
+function analyzeAccount(m){
+  const S=[],a=m.account;const add=(label,pts,detail,state)=>S.push({label,pts,detail,state:state||(pts>=2?'hit':pts>0?'soft':'ok')});
+  const all=m.items||[];
+  const timed=all.filter(x=>x.time&&!isNaN(x.time));
+  const full=timed.filter(x=>!x.timeOnly).sort((x,y)=>x.time-y.time);
+  const texts=all.filter(x=>x.text&&clean(x.text).length>=20);
+
+  if(a.created){const d=(Date.now()-a.created)/864e5;const p=d<30?2:d<180?1:0;add('Kontoalter',p,`${fmtAge(d)} alt, erstellt am ${fmtDate(a.created)}.`+(p?' Bot-Netze nutzen oft frische Konten, aber jeder echte Neuanfang ist auch jung.':''))}
+  else add('Kontoalter',0,'Erstellungsdatum unbekannt.','na');
+
+  let life=null,recent=null;
+  if(a.created&&a.posts!=null)life=a.posts/Math.max(1,(Date.now()-a.created)/864e5);
+  if(full.length>=20){const span=(full[full.length-1].time-full[0].time)/864e5;recent=full.length/Math.max(span,1/24)}
+  if(life!=null||recent!=null){const r=Math.max(life||0,recent||0);const p=r>50?3:r>20?2:0;
+    add('Beitragsmenge',p,[life!=null?`${fmtN(life,1)} pro Tag über die ganze Laufzeit`:'',recent!=null?`${fmtN(recent,1)} pro Tag in den letzten ${full.length} Einträgen`:''].filter(Boolean).join(', ')+'.'+(p?' Mehr als 20 am Tag schafft ein Mensch kaum dauerhaft.':''))}
+  else add('Beitragsmenge',0,'Zu wenige Angaben.','na');
+
+  const hist=Array(24).fill(0);timed.forEach(x=>hist[x.time.getHours()]++);
+  let gap=null;
+  if(timed.length>=30){gap=longestZeroRun(hist);const p=gap<=1?2:gap<=3?1:0;add('Ruhephase',p,gap===0?'Aktiv in allen 24 Stunden des Tages. Menschen schlafen.':`Längste Pause im Tagesverlauf: ${gap} Stunden.`+(p?' Sehr kurze Ruhephasen sprechen für Automatisierung oder Schichtbetrieb.':''))}
+  else add('Ruhephase',0,`Braucht mindestens 30 Zeitstempel (vorhanden: ${timed.length}).`,'na');
+
+  if(full.length>=20){const d=[];for(let i=1;i<full.length;i++)d.push(full[i].time-full[i-1].time);const mean=d.reduce((s,x)=>s+x,0)/d.length;const sd=Math.sqrt(d.reduce((s,x)=>s+(x-mean)**2,0)/d.length);const cv=sd/(mean||1);const p=cv<.35?2:cv<.6?1:0;
+    add('Gleichmäßiger Takt',p,`Schwankung der Abstände: ${fmtN(cv,2)} (Menschen liegen meist deutlich über 1).`+(p?` Abstände von etwa ${fmtN(mean/6e4,0)} Minuten wirken getaktet.`:''))
+    const b=maxInWindow(full.map(x=>+x.time),36e5);add('Spitzen',b>=30?2:b>=15?1:0,`Höchstens ${b} Beiträge innerhalb einer Stunde.`)}
+  else add('Gleichmäßiger Takt',0,'Braucht mindestens 20 vollständige Zeitstempel.','na');
+
+  let dupGroups=[];
+  if(texts.length>=8){const g={};texts.forEach(x=>{const k=clean(x.text);(g[k]=g[k]||[]).push(x)});dupGroups=Object.values(g).filter(v=>v.length>1).sort((x,y)=>y.length-x.length);
+    const dupN=dupGroups.reduce((s,v)=>s+v.length,0);const r=dupN/texts.length;const p=r>.3?3:r>.1?2:0;
+    add('Wiederholte Texte',p,`${fmtN(r*100)} % der Texte kommen mehrfach vor (${dupN} von ${texts.length}).`+(p?' Copy-Paste in Serie ist typisch für Kampagnen-Konten.':''))}
+  else add('Wiederholte Texte',0,'Zu wenige Texte für einen Vergleich.','na');
+
+  if(timed.length>=20&&m.platform!=='YouTube'){const rs=timed.filter(x=>x.kind==='repost').length/timed.length;add('Nur Weiterverbreitung',rs>.85?1:0,`${fmtN(rs*100)} % der Aktivität sind Reposts.`)}
+
+  if(a.followers!=null&&a.following!=null){const p=a.following>500&&a.following>10*Math.max(1,a.followers)?1:0;add('Folgen-Verhältnis',p,`Folgt ${fmtN(a.following)} Konten, hat ${fmtN(a.followers)} Follower.`+(p?' Massenhaftes Folgen ohne Rückhalt ist ein typisches Reichweiten-Muster.':''))}
+
+  if(a.hasAvatar!=null){const p=!a.hasAvatar&&!a.hasBio?1:0;add('Profil',p,p?'Weder Profilbild noch Profiltext.':`Profilbild ${a.hasAvatar?'vorhanden':'fehlt'}, Profiltext ${a.hasBio?'vorhanden':'fehlt'}.`)}
+
+  const dc={};let dn=0;all.forEach(x=>(x.domains||[]).forEach(d=>{dc[d]=(dc[d]||0)+1;dn++}));
+  const doms=Object.entries(dc).sort((x,y)=>y[1]-x[1]);
+  if(dn>=10){const share=doms[0][1]/dn;add('Link-Ziele',share>.5?1:0,`Häufigstes Ziel: ${doms[0][0]} (${fmtN(share*100)} % aller Links).`+(share>.5?' Ein Konto, das fast nur eine Seite bewirbt, ist oft Teil einer Verbreitungskampagne.':''))}
+
+  const strong=texts.filter(x=>STRONG_AI.test(x.text)),weak=texts.filter(x=>WEAK_AI.test(x.text));
+  if(strong.length)add('Chatbot-Reste im Text',3,`${strong.length} Beitrag/Beiträge enthalten typische Chatbot-Antwortsätze, die beim Kopieren mitgerutscht sind. Das ist eine eindeutige Spur.`);
+  else if(texts.length)add('KI-Text',0,weak.length?`${weak.length} Beitrag/Beiträge mit KI-typischen Floskeln. Das allein ist kein Beleg, Menschen schreiben auch so.`:'Keine eindeutigen KI-Spuren. Ob ein Text KI-geschrieben ist, lässt sich ohne solche Spuren nicht verlässlich sagen.',weak.length?'info':'ok');
+
+  if(a.botFlag)add('Als Bot gekennzeichnet',0,'Das Konto erklärt sich selbst als automatisiert. Das ist transparent und kein Täuschungssignal.','info');
+
+  const score=S.reduce((s,x)=>s+x.pts,0);const evaluated=S.filter(x=>x.state!=='na').length;
+  return{signals:S,score,evaluated,hist,dupGroups,doms,timedN:timed.length};
+}
+
+function analyzeComments(list){
+  const S=[];const add=(label,pts,detail,state)=>S.push({label,pts,detail,state:state||(pts>=2?'hit':pts>0?'soft':'ok')});
+  const n=list.length;if(n<10)return{signals:[{label:'Kommentare',pts:0,detail:`Nur ${n} Kommentare, zu wenig für Muster.`,state:'na'}],score:0,groups:[]};
+  const g={};list.forEach(c=>{const k=clean(c.text);if(k.length>=15)(g[k]=g[k]||[]).push(c)});
+  const groups=Object.values(g).filter(v=>v.length>1&&new Set(v.map(c=>c.authorId||c.author)).size>1).sort((x,y)=>y.length-x.length);
+  const dupN=groups.reduce((s,v)=>s+v.length,0);const r=dupN/n;
+  add('Gleiche Kommentare verschiedener Konten',r>.15?3:r>.05?2:0,`${dupN} von ${n} Kommentaren sind wortgleich mit denen anderer Konten.`);
+  const known=list.filter(c=>c.authorCreated);
+  if(known.length>=10){const fresh=known.filter(c=>(c.time-c.authorCreated)/864e5<30).length/known.length;add('Frische Konten',fresh>.3?2:fresh>.15?1:0,`${fmtN(fresh*100)} % der Kommentierenden hatten ihr Konto beim Kommentieren seit weniger als 30 Tagen.`)}
+  const t=list.map(c=>+c.time).sort((x,y)=>x-y);const b=maxInWindow(t,6e5);const bs=b/n;
+  add('Kommentarwelle',bs>.4&&b>=15?2:bs>.25&&b>=10?1:0,`Bis zu ${b} Kommentare innerhalb von 10 Minuten (${fmtN(bs*100)} % aller geladenen).`);
+  const generic=list.filter(c=>/^[\p{Emoji}\s!.❤️👍🔥]*$/u.test(c.text)||/^(great|nice|amazing|awesome|super|top|wow|toll|klasse|danke|stark|genau so)( video| content)?[\s!.]*$/i.test(c.text.trim())).length/n;
+  add('Floskel-Kommentare',generic>.4?1:0,`${fmtN(generic*100)} % bestehen nur aus Emojis oder Einwort-Lob.`);
+  return{signals:S,score:S.reduce((s,x)=>s+x.pts,0),groups};
+}
+const levelOf=s=>s>=6?[2,'stark auffällig']:s>=3?[1,'auffällig']:[0,'unauffällig'];
+
+/* ---------- Darstellung ---------- */
+function histSVG(h){
+  const W=480,H=120,pl=8,pb=18,bw=(W-pl*2)/24,max=Math.max(1,...h);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Aktivität nach Tageszeit"><line class="ax" x1="${pl}" x2="${W-pl}" y1="${H-pb}" y2="${H-pb}"/>`;
+  h.forEach((v,i)=>{const x=pl+i*bw;if(!v)s+=`<rect class="z" x="${x}" y="8" width="${bw}" height="${H-pb-8}"/>`;const bh=v/max*(H-pb-14);s+=`<rect class="b" x="${x+1.5}" y="${H-pb-bh}" width="${bw-3}" height="${bh}" rx="1.5"><title>${i} Uhr: ${v}</title></rect>`;if(i%3===0)s+=`<text x="${x+bw/2}" y="${H-4}" text-anchor="middle">${String(i).padStart(2,'0')}</text>`});
+  return s+'</svg>';
+}
+function signalList(S){return`<ul class="signals">${S.map(x=>`<li><span class="pill ${x.state}">${x.state==='na'?'k. A.':x.state==='info'?'Hinweis':'+'+x.pts}</span><b>${esc(x.label)}</b><p>${esc(x.detail)}</p></li>`).join('')}</ul>`}
+function verdict(score,note){const[l,t]=levelOf(score);const pos=Math.min(score,12)/12*100;
+  return`<div class="verdict"><div class="lvl l${l}">${t}</div><div class="meter"><div class="bar"><i style="left:${pos}%"></i></div><div class="scale"><span>0</span><span>3</span><span>6</span><span>12+ Punkte</span></div></div></div><p class="hint">${esc(score)} Verdachtspunkte. ${esc(note)}</p>`}
+function nodeLi(n,origin){return`<li class="${origin?'origin':''}"><div class="meta">${esc(n.rel?n.rel+' · ':'')}${esc(n.author)} · ${fmtDT(n.time)}${n.sim!=null?' · '+fmtN(n.sim*100)+' % gleich':''}${origin?' · frühester Fund':''}</div><p class="quote">${esc(n.text.slice(0,280))}${n.text.length>280?'…':''}</p>${n.url?`<a href="${esc(n.url)}" target="_blank" rel="noopener">öffnen</a>`:''}</li>`}
+function provenanceLinks(url,text){
+  const q=clean(text).split(' ').slice(0,12).join(' ');const L=[];
+  if(url)L.push(['Archiv (Wayback Machine)','https://web.archive.org/web/*/'+url]);
+  if(q){L.push(['Gleicher Text im Netz','https://www.google.com/search?q='+encodeURIComponent('"'+q+'"')]);L.push(['Faktenchecks (Google)','https://toolbox.google.com/factcheck/explorer/search/'+encodeURIComponent(q)]);L.push(['Correctiv','https://correctiv.org/?s='+encodeURIComponent(q)]);L.push(['Mimikama','https://www.mimikama.org/?s='+encodeURIComponent(q)])}
+  L.push(['Bild rückwärts suchen (TinEye)','https://tineye.com/'],['Google Lens','https://lens.google.com/'],['Content Credentials prüfen','https://contentcredentials.org/verify']);
+  return`<div class="links">${L.map(([t,u])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join('')}</div>`;
+}
+
+function renderReport({model,post,chain,coord,video,comments,manualUrl}){
+  const a=model.account,an=analyzeAccount(model);let h='';
+  if(post){
+    const all=[...(chain||[]),...((coord&&coord.hits)||[])];const earliest=all.length?all.reduce((x,y)=>y.time<x.time?y:x):null;
+    h+=`<section class="card"><h3>Geprüfter Beitrag</h3><ul class="list">${nodeLi(post,false)}</ul><div class="meta">${fmtN(post.reposts)} Reposts · ${fmtN(post.likes)} Likes${post.quotes!=null?' · '+fmtN(post.quotes)+' Zitate':''}</div>`;
+    if(chain&&chain.length)h+=`<h2>Verbreitungsweg zurück</h2><ul class="list">${chain.map(n=>nodeLi(n,n===earliest)).join('')}</ul>`;
+    else h+=`<p class="hint">Kein Zitat und keine Antwort: der Beitrag steht für sich.</p>`;
+    h+=`<h2>Gleiche Texte anderer Konten</h2>`;
+    if(coord?.note)h+=`<p class="hint">${esc(coord.note)}</p>`;
+    else if(coord?.hits?.length){const accts=new Set(coord.hits.map(x=>x.author)).size;const span=(coord.hits[coord.hits.length-1].time-coord.hits[0].time)/36e5;
+      h+=`<p class="hint">${coord.hits.length} fast gleiche Beiträge von ${accts} Konten innerhalb von ${fmtN(span,1)} Stunden.${accts>=5&&span<24?' Viele Konten, gleicher Text, kurzes Zeitfenster: das ist das stärkste Zeichen für eine koordinierte Kampagne.':''}</p><ul class="list">${coord.hits.slice(0,15).map(n=>nodeLi(n,n===earliest)).join('')}</ul>`}
+    else h+=`<p class="hint">Keine fast gleichen Beiträge anderer Konten gefunden.</p>`;
+    h+=`<h3>Herkunft weiter prüfen</h3>${provenanceLinks(post.url,post.text)}</section>`;
+  }
+  if(video){const ca=analyzeComments(comments.list);
+    h+=`<section class="card"><h3>Video</h3><h2>${esc(video.title)}</h2><div class="meta">${fmtDT(video.published)} · ${fmtN(video.views)} Aufrufe · ${fmtN(video.likes)} Likes · ${fmtN(video.comments)} Kommentare</div>`;
+    h+=`<h2>Kommentarspalte</h2>${comments.note?`<p class="hint">${esc(comments.note)}</p>`:verdict(ca.score,`Ausgewertet: ${comments.list.length} neueste Kommentare.`)+signalList(ca.signals)}`;
+    if(ca.groups?.length)h+=`<h3>Wortgleiche Kommentare</h3><ul class="list">${ca.groups.slice(0,5).map(g=>`<li><div class="meta">${g.length}× von ${new Set(g.map(c=>c.author)).size} Konten</div><p class="quote">${esc(g[0].text.slice(0,200))}</p></li>`).join('')}</ul>`;
+    h+=`<h3>Herkunft weiter prüfen</h3>${provenanceLinks(video.url,video.title)}</section>`;
+  }
+  h+=`<section class="card">${model.demo?'<div class="demo-flag">Beispieldaten · fiktives Konto</div>':''}<div class="acct"><h2>${esc(a.name||'Konto')}</h2><span class="h">${esc(model.platform)} · ${a.url?`<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.handle)}</a>`:esc(a.handle||'')}</span></div>
+  <dl class="facts"><div><dt>Kontoalter</dt><dd>${a.created?fmtAge((Date.now()-a.created)/864e5):'–'}</dd></div><div><dt>${model.platform==='YouTube'?'Videos':'Beiträge'}</dt><dd>${fmtN(a.posts)}</dd></div><div><dt>${model.platform==='YouTube'?'Abonnenten':'Follower'}</dt><dd>${fmtN(a.followers)}</dd></div>${a.following!=null?`<div><dt>Folgt</dt><dd>${fmtN(a.following)}</dd></div>`:''}<div><dt>Ausgewertet</dt><dd>${fmtN(model.items.length)}</dd></div></dl>
+  ${verdict(an.score,`${an.evaluated} Signale geprüft. Je mehr Signale zusammenkommen, desto belastbarer.`)}${signalList(an.signals)}`;
+  if(an.timedN>=10)h+=`<h3>Aktivität nach Tageszeit (deine Ortszeit)</h3><div class="chart">${histSVG(an.hist)}</div><p class="hint">Grau hinterlegt: Stunden ganz ohne Aktivität.</p>`;
+  if(an.dupGroups.length)h+=`<h3>Häufigste Wiederholungen</h3><ul class="list">${an.dupGroups.slice(0,3).map(g=>`<li><div class="meta">${g.length}× gepostet</div><p class="quote">${esc(g[0].text.slice(0,200))}</p></li>`).join('')}</ul>`;
+  if(an.doms.length)h+=`<h3>Verlinkte Seiten</h3><div class="links">${an.doms.slice(0,8).map(([d,c])=>`<span class="meta">${esc(d)} · ${c}</span>`).join('')}</div>`;
+  if(!post&&!video)h+=`<h3>Herkunft weiter prüfen</h3>${provenanceLinks(manualUrl||a.url,(model.items.find(x=>x.text)||{}).text||'')}`;
+  h+=`</section>`;
+  $('#report').innerHTML=h;
+}
+
+/* ---------- Bildprüfung ---------- */
+function latin1(b){let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return s}
+async function checkImage(file){
+  const b=new Uint8Array(await file.arrayBuffer());
+  const head=latin1(b.subarray(0,Math.min(b.length,2e6)))+latin1(b.subarray(Math.max(0,b.length-262144)));
+  const S=[];const add=(label,state,detail)=>S.push({label,pts:0,state,detail});
+  const c2pa=/c2pa|jumb/i.test(head);
+  add('Content Credentials (C2PA)',c2pa?'info':'na',c2pa?'Das Bild trägt einen Herkunftsnachweis. Lade es bei contentcredentials.org/verify hoch, dort siehst du Ersteller, Werkzeuge und Bearbeitungsschritte.':'Kein Herkunftsnachweis enthalten. Das ist normal, die meisten Plattformen entfernen solche Daten beim Hochladen.');
+  const ai=head.match(/trainedAlgorithmicMedia|compositeWithTrainedAlgorithmicMedia/);
+  const gen=head.match(/Midjourney|DALL[·\-]?E|Stable Diffusion|Adobe Firefly|ComfyUI|NovelAI|Negative prompt|Imagen|GPT-4o|gpt-image/);
+  if(ai||gen)S.push({label:'KI-Kennzeichnung',pts:3,state:'hit',detail:`In den Metadaten steht ein Hinweis auf KI-Erzeugung: „${(ai||gen)[0]}“.`});
+  else add('KI-Kennzeichnung','ok','Keine KI-Kennzeichnung in den Metadaten. Fehlende Kennzeichnung beweist nicht, dass das Bild echt ist.');
+  const cam=head.slice(0,65536).match(/(Canon|NIKON|SONY|Apple|samsung|FUJIFILM|OLYMPUS|Panasonic|GoPro|Google|Xiaomi|HUAWEI|LEICA|DJI)/);
+  add('Kamera-Daten',cam?'ok':'na',cam?`EXIF-Daten einer Kamera gefunden (${cam[0]}). Das spricht für ein echtes Foto, lässt sich aber fälschen.`:'Keine Kamera-Daten. Häufig nach Screenshots oder dem Weg über Messenger und Plattformen.');
+  const sw=head.match(/Adobe Photoshop|Lightroom|GIMP|Snapseed|Canva|Picsart/);
+  if(sw)add('Bearbeitung','info',`Bearbeitet mit ${sw[0]}.`);
+  const url=URL.createObjectURL(file);
+  $('#report').innerHTML=`<section class="card"><h3>Bildprüfung</h3><h2>${esc(file.name)}</h2><img class="imgprev" src="${url}" alt="Geprüftes Bild">${signalList(S)}<h3>Ursprung suchen</h3><p class="hint">Rückwärtssuche zeigt, wo das Bild zuerst aufgetaucht ist. Lade es dort hoch:</p>${provenanceLinks(null,'')}</section>`;
+}
+
+/* ---------- Beispiel ---------- */
+function demoModel(){
+  const now=Date.now(),items=[];
+  const base=['Die Regierung verschweigt die wahren Zahlen! Teilt das, bevor es gelöscht wird: ','Unabhängige Experten bestätigen es endlich. Das wird uns verschwiegen, alle Infos hier: ','Warum berichtet niemand darüber? Hier stehen die ganzen Fakten: '];
+  for(let i=0;i<240;i++){const t=new Date(now-i*(18*6e4+(i%5)*4e4));const r=i%7===0;items.push({time:t,text:r?'':base[i%3]+'https://wahrheit-jetzt.example/'+(i%9),kind:r?'repost':'post',domains:r?[]:['wahrheit-jetzt.example']})}
+  return{platform:'Bluesky',demo:true,account:{name:'Nachrichten Aktuell 24',handle:'@nachrichten-aktuell-24.example',url:null,created:new Date(now-12*864e5),followers:38,following:2140,posts:9120,hasAvatar:false,hasBio:false,botFlag:false},items};
+}
+
+/* ---------- Steuerung ---------- */
+function setStatus(msg,err){const s=$('#status');s.textContent=msg||'';s.className=err?'err':''}
+function showTab(t){document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));['link','manual','image','settings'].forEach(x=>$('#p-'+x).hidden=x!==t)}
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+
+function handleErr(e){
+  if(e instanceof Blocked)setStatus('Die Verbindung wurde blockiert. In der Claude-Vorschau sind fremde Server gesperrt. Lade die Datei auf GitHub Pages hoch oder öffne sie lokal im Browser, dann fragt Echolot Bluesky, Mastodon und YouTube direkt ab. Bis dahin zeigt „Beispiel ansehen“, wie ein Befund aussieht.',true);
+  else if(e instanceof NeedKey){showTab('settings');setStatus('Für YouTube brauchst du einen kostenlosen API-Schlüssel. Trag ihn hier ein und prüfe dann erneut.',true)}
+  else if(e.status===400||e.status===404)setStatus('Nicht gefunden. Stimmt der Link oder das Handle? ('+e.message+')',true);
+  else setStatus('Abfrage fehlgeschlagen: '+e.message,true);
+}
+
+$('#f-link').addEventListener('submit',async ev=>{
+  ev.preventDefault();const v=$('#in-link').value;const d=detect(v);
+  if(!v.trim())return setStatus('Füge einen Link oder ein Handle ein.',true);
+  if(!d)return setStatus('Plattform nicht erkannt. Für X, TikTok, Instagram & Co. nutze den manuellen Modus.',true);
+  if(d.p==='manual'){showTab('manual');$('#m-plat').value=d.name;$('#m-url').value=d.url;return setStatus(d.name+' bietet keine offene Schnittstelle. Trag die Profildaten und ein paar Beiträge ein.')}
+  setStatus('Lote aus …');$('#report').innerHTML='';
+  try{
+    if(d.p==='bluesky')renderReport(d.kind==='post'?await bskyPost(d.actor,d.rkey):{model:await bskyAccount(d.actor)});
+    else if(d.p==='mastodon')renderReport(d.status?await mastoPost(d.host,d.user,d.status):{model:await mastoAccount(d.host,d.user)});
+    else if(d.p==='youtube')renderReport(d.kind==='video'?await ytVideo(d.id):{model:await ytChannel(d.sel)});
+    setStatus('');
+  }catch(e){handleErr(e)}
+});
+$('#demo').addEventListener('click',()=>{setStatus('');renderReport({model:demoModel()})});
+
+$('#f-manual').addEventListener('submit',ev=>{
+  ev.preventDefault();
+  const num=id=>{const v=$(id).value;return v===''?null:+v};
+  const texts=$('#m-texts').value.split(/\n\s*\n/).map(t=>t.trim()).filter(Boolean);
+  const items=texts.map(t=>({text:t,time:null,kind:'post',domains:(t.match(/https?:\/\/\S+/g)||[]).map(domainOf).filter(Boolean)}));
+  const today=new Date();
+  $('#m-times').value.split('\n').map(l=>l.trim()).filter(Boolean).forEach(l=>{
+    let m=l.match(/^(\d{1,2}):(\d{2})$/);
+    if(m){const t=new Date(today);t.setHours(+m[1],+m[2],0,0);items.push({time:t,timeOnly:true,text:'',kind:'post',domains:[]});return}
+    m=l.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})[ ,T]+(\d{1,2}):(\d{2})/);
+    const t=m?new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5]):new Date(l.replace(' ','T'));
+    if(!isNaN(t))items.push({time:t,text:'',kind:'post',domains:[]});
+  });
+  const c=$('#m-created').value;
+  const model={platform:$('#m-plat').value,account:{name:$('#m-name').value||'Konto',handle:$('#m-name').value,url:null,created:c?new Date(c):null,followers:num('#m-followers'),following:num('#m-following'),posts:num('#m-posts'),hasAvatar:$('#m-avatar').value==='1',hasBio:$('#m-bio').value==='1',botFlag:false},items};
+  setStatus('');renderReport({model,manualUrl:$('#m-url').value.trim()||null});
+});
+
+$('#in-img').addEventListener('change',e=>{const f=e.target.files[0];if(f){setStatus('');checkImage(f).catch(err=>setStatus('Bild konnte nicht gelesen werden: '+err.message,true))}});
+$('#yt-key').value=store.get('yt-key')||'';
+$('#save-key').addEventListener('click',()=>{store.set('yt-key',$('#yt-key').value.trim());showTab('link');setStatus('Schlüssel gespeichert. Jetzt ein YouTube-Video oder einen Kanal prüfen.')});
+
+renderReport({model:demoModel()});
+</script>
+
+</body>
+</html>
