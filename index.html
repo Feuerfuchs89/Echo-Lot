@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+/* ===== HIER DEINEN YOUTUBE-SCHLUESSEL ZWISCHEN DIE ANFUEHRUNGSZEICHEN SETZEN ===== */
+const YT_KEY_DEFAULT = "";
+</script>
 <title>Echolot</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -273,7 +277,7 @@ async function mastoPost(host,user,id){
 
 /* ---------- YouTube ---------- */
 const YT='https://www.googleapis.com/youtube/v3/';
-async function yq(m,p){const key=store.get('yt-key')||$('#yt-key').value.trim();if(!key)throw new NeedKey();return getJSON(YT+m+'?'+new URLSearchParams({...p,key}))}
+async function yq(m,p){const key=store.get('yt-key')||$('#yt-key').value.trim()||YT_KEY_DEFAULT;if(!key)throw new NeedKey();return getJSON(YT+m+'?'+new URLSearchParams({...p,key}))}
 async function ytChannel(sel){
   const c=(await yq('channels',{part:'snippet,statistics,contentDetails',...sel})).items?.[0];
   if(!c)throw new Error('Kanal nicht gefunden.');
@@ -496,6 +500,7 @@ $('#f-manual').addEventListener('submit',ev=>{
 
 $('#in-img').addEventListener('change',e=>{const f=e.target.files[0];if(f){setStatus('');checkImage(f).catch(err=>setStatus('Bild konnte nicht gelesen werden: '+err.message,true))}});
 $('#yt-key').value=store.get('yt-key')||'';
+if(YT_KEY_DEFAULT){$('#yt-key').placeholder='Fester Schlüssel aus der Datei ist aktiv';document.querySelector('.chips .chip:nth-child(3)').textContent='YouTube live'}
 $('#save-key').addEventListener('click',()=>{store.set('yt-key',$('#yt-key').value.trim());showTab('link');setStatus('Schlüssel gespeichert. Jetzt ein YouTube-Video oder einen Kanal prüfen.')});
 
 renderReport({model:demoModel()});
